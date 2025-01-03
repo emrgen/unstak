@@ -9,7 +9,7 @@ import (
 )
 
 // NewTagService creates a new tag service
-func NewTagService(store store.TinyPostStore) *TagService {
+func NewTagService(store store.UnPostStore) *TagService {
 	return &TagService{
 		store: store,
 	}
@@ -19,7 +19,7 @@ var _ v1.TagServiceServer = new(TagService)
 
 // TagService is the service that provides tag operations
 type TagService struct {
-	store store.TinyPostStore
+	store store.UnPostStore
 	v1.UnimplementedTagServiceServer
 }
 

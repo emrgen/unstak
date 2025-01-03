@@ -399,47 +399,45 @@ service TagService {
   }
 }
 
-message Book {
+message Course {
   string id = 1 [(validate.rules).string.uuid = true];
-  string title = 2;
-  string content = 3;
-  string description = 5;
-  string thumbnail = 6;
+  string cover_page_id = 2 [(validate.rules).string.uuid = true];
+  Page cover_page = 4;
   string content_pages = 7;
   google.protobuf.Timestamp created_at = 10;
   google.protobuf.Timestamp updated_at = 11;
   string created_by_id = 12 [(validate.rules).string.uuid = true];
 }
 
-message CreateBookRequest {
+message CreateCourseRequest {
   string title = 1;
   string content = 2;
   string description = 3;
   string thumbnail = 4;
 }
 
-message CreateBookResponse {
-  Book book = 1;
+message CreateCourseResponse {
+  Course book = 1;
 }
 
-message GetBookRequest {
+message GetCourseRequest {
   string id = 1 [(validate.rules).string.uuid = true];
 }
 
-message GetBookResponse {
-  Book book = 1;
+message GetCourseResponse {
+  Course book = 1;
 }
 
-message ListBookRequest {
+message ListCourseRequest {
   int32 page = 1;
   int32 per_page = 2;
 }
 
-message ListBookResponse {
-  repeated Book books = 1;
+message ListCourseResponse {
+  repeated Course courses = 1;
 }
 
-message UpdateBookRequest {
+message UpdateCourseRequest {
   string id = 1 [(validate.rules).string.uuid = true];
   string title = 2;
   string content = 3;
@@ -447,74 +445,74 @@ message UpdateBookRequest {
   string thumbnail = 5;
 }
 
-message UpdateBookResponse {
-  Book book = 1;
+message UpdateCourseResponse {
+  Course course = 1;
 }
 
-message DeleteBookRequest {
+message DeleteCourseRequest {
   string id = 1 [(validate.rules).string.uuid = true];
 }
 
-message DeleteBookResponse {
+message DeleteCourseResponse {
   string id = 1 [(validate.rules).string.uuid = true];
 }
 
-message AddBookTagRequest {
-  string book_id = 1 [(validate.rules).string.uuid = true];
+message AddCourseTagRequest {
+  string course_id = 1 [(validate.rules).string.uuid = true];
   string tag_id = 2 [(validate.rules).string.uuid = true];
 }
 
-message AddBookTagResponse {
-  Book book = 1;
+message AddCourseTagResponse {
+  Course course = 1;
 }
 
-message RemoveBookTagRequest {
-  string book_id = 1 [(validate.rules).string.uuid = true];
+message RemoveCourseTagRequest {
+  string course_id = 1 [(validate.rules).string.uuid = true];
   string tag_id = 2 [(validate.rules).string.uuid = true];
 }
 
-message RemoveBookTagResponse {
-  Book book = 1;
+message RemoveCourseTagResponse {
+  Course course = 1;
 }
 
-service BookService {
-  rpc CreateBook(CreateBookRequest) returns (CreateBookResponse) {
+service CourseService {
+  rpc CreateCourse(CreateCourseRequest) returns (CreateCourseResponse) {
     option (google.api.http) = {
-      post: "/v1/books"
+      post: "/v1/courses"
       body: "*"
     };
   }
 
-  rpc GetBook(GetBookRequest) returns (GetBookResponse) {
-    option (google.api.http) = {get: "/v1/books/{id}"};
+  rpc GetCourse(GetCourseRequest) returns (GetCourseResponse) {
+    option (google.api.http) = {get: "/v1/courses/{id}"};
   }
 
-  rpc ListBook(ListBookRequest) returns (ListBookResponse) {
-    option (google.api.http) = {get: "/v1/books"};
+  rpc ListCourse(ListCourseRequest) returns (ListCourseResponse) {
+    option (google.api.http) = {get: "/v1/courses"};
   }
 
-  rpc UpdateBook(UpdateBookRequest) returns (UpdateBookResponse) {
+  rpc UpdateCourse(UpdateCourseRequest) returns (UpdateCourseResponse) {
     option (google.api.http) = {
-      put: "/v1/books/{id}"
+      put: "/v1/courses/{id}"
       body: "*"
     };
   }
 
-  rpc DeleteBook(DeleteBookRequest) returns (DeleteBookResponse) {
-    option (google.api.http) = {delete: "/v1/books/{id}"};
+  rpc DeleteCourse(DeleteCourseRequest) returns (DeleteCourseResponse) {
+    option (google.api.http) = {delete: "/v1/courses/{id}"};
   }
 
-  rpc AddBookTag(AddBookTagRequest) returns (AddBookTagResponse) {
-    option (google.api.http) = {post: "/v1/books/{book_id}/tags/{tag_id}"};
+  rpc AddCourseTag(AddCourseTagRequest) returns (AddCourseTagResponse) {
+    option (google.api.http) = {post: "/v1/courses/{course_id}/tags/{tag_id}"};
   }
 
-  rpc RemoveBookTag(RemoveBookTagRequest) returns (RemoveBookTagResponse) {
-    option (google.api.http) = {delete: "/v1/books/{book_id}/tags/{tag_id}"};
+  rpc RemoveCourseTag(RemoveCourseTagRequest) returns (RemoveCourseTagResponse) {
+    option (google.api.http) = {delete: "/v1/courses/{course_id}/tags/{tag_id}"};
   }
 }
 
 message Page {
-  string book_id = 1 [(validate.rules).string.uuid = true];
+  string course_id = 1 [(validate.rules).string.uuid = true];
   string id = 2 [(validate.rules).string.uuid = true];
   string title = 3;
   string content = 4;
@@ -525,7 +523,7 @@ message Page {
 }
 
 message CreatePageRequest {
-  string book_id = 1 [(validate.rules).string.uuid = true];
+  string course_id = 1 [(validate.rules).string.uuid = true];
   string title = 2;
   string content = 3;
   string thumbnail = 4;
@@ -541,16 +539,6 @@ message GetPageRequest {
 
 message GetPageResponse {
   Page page = 1;
-}
-
-message ListPageRequest {
-  string book_id = 1 [(validate.rules).string.uuid = true];
-  int32 page = 2;
-  int32 per_page = 3;
-}
-
-message ListPageResponse {
-  repeated Page pages = 1;
 }
 
 message UpdatePageRequest {
@@ -602,10 +590,6 @@ service PageService {
     option (google.api.http) = {get: "/v1/pages/{id}"};
   }
 
-  rpc ListPage(ListPageRequest) returns (ListPageResponse) {
-    option (google.api.http) = {get: "/v1/pages"};
-  }
-
   rpc UpdatePage(UpdatePageRequest) returns (UpdatePageResponse) {
     option (google.api.http) = {
       put: "/v1/pages/{id}"
@@ -632,7 +616,7 @@ service PageService {
 
 message Subscription {
   string id = 1 [(validate.rules).string.uuid = true];
-  string name = 2; 
+  string name = 2;
   string description = 3;
   string thumbnail = 4;
   string created_by_id = 5 [(validate.rules).string.uuid = true];
@@ -647,7 +631,7 @@ message CreateSubscriptionRequest {
 }
 
 message CreateSubscriptionResponse {
-  Subscription outlet = 1;
+  Subscription subscription = 1;
 }
 
 message GetSubscriptionRequest {
@@ -655,7 +639,7 @@ message GetSubscriptionRequest {
 }
 
 message GetSubscriptionResponse {
-  Subscription space = 1;
+  Subscription subscription = 1;
 }
 
 message ListSubscriptionsRequest {
@@ -664,7 +648,7 @@ message ListSubscriptionsRequest {
 }
 
 message ListSubscriptionsResponse {
-  repeated Subscription outlets = 1;
+  repeated Subscription subscriptions = 1;
 }
 
 message UpdateSubscriptionRequest {

@@ -7,13 +7,15 @@ import (
 	"github.com/emrgen/unpost/internal/model"
 )
 
-type TinyPostStore interface {
+type UnPostStore interface {
 	OutletStore
 	PostStore
 	OutletMemberStore
 	CollectionStore
+	CourseStore
+	PageStore
 	TagStore
-	Transaction(ctx context.Context, f func(ctx context.Context, store TinyPostStore) error) error
+	Transaction(ctx context.Context, f func(ctx context.Context, store UnPostStore) error) error
 	Migrate() error
 }
 
@@ -83,6 +85,34 @@ type CollectionStore interface {
 	AddCollectionTag(ctx context.Context, tag *model.CollectionTag) error
 	// RemoveCollectionTag removes a tag from a collection.
 	RemoveCollectionTag(ctx context.Context, tag *model.CollectionTag) error
+}
+
+type CourseStore interface {
+	// CreateCourse creates a new course.
+	CreateCourse(ctx context.Context, course *model.Course) error
+	// GetCourse retrieves a course by ID.
+	GetCourse(ctx context.Context, id uuid.UUID) (*model.Course, error)
+	// ListCourses retrieves a list of courses by space ID.
+	ListCourses(ctx context.Context, spaceID uuid.UUID) ([]*model.Course, error)
+	// UpdateCourse updates a course.
+	UpdateCourse(ctx context.Context, course *model.Course) error
+	// DeleteCourse deletes a course by ID.
+	DeleteCourse(ctx context.Context, id uuid.UUID) error
+	// UpdateCourseTags updates the tags of a course.
+	UpdateCourseTags(ctx context.Context, courseID uuid.UUID, tags []*model.Tag) error
+}
+
+type PageStore interface {
+	// CreatePage creates a new page.
+	CreatePage(ctx context.Context, page *model.Page) error
+	// GetPage retrieves a page by ID.
+	GetPage(ctx context.Context, id uuid.UUID) (*model.Page, error)
+	// UpdatePage updates a page.
+	UpdatePage(ctx context.Context, page *model.Page) error
+	// DeletePage deletes a page by ID.
+	DeletePage(ctx context.Context, id uuid.UUID) error
+	// UpdatePageTags updates the tags of a page.
+	UpdatePageTags(ctx context.Context, pageID uuid.UUID, tags []*model.Tag) error
 }
 
 type TagStore interface {

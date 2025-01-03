@@ -16,9 +16,9 @@ func getConnection() (*grpc.ClientConn, func() error) {
 	return conn, conn.Close
 }
 
-func outletClient() (v1.OutletServiceClient, func() error) {
+func subscriptionClient() (v1.SubscriptionServiceClient, func() error) {
 	conn, closer := getConnection()
-	client := v1.NewOutletServiceClient(conn)
+	client := v1.NewSubscriptionServiceClient(conn)
 
 	return client, closer
 }

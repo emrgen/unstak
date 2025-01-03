@@ -7,11 +7,10 @@ import (
 
 type Page struct {
 	gorm.Model
-	ID           string `gorm:"primaryKey;uuid"`
-	Title        string `gorm:"not null"`
-	ContentPages string `gorm:"not null"`
-	BookID       string `gorm:"not null"`
-	Book         *Book  `gorm:"foreignKey:BookID;references:ID"`
+	ID         string  `gorm:"primaryKey;uuid"`
+	DocumentID string  `gorm:"not null"`
+	CourseID   string  `gorm:"not null"`
+	Course     *Course `gorm:"foreignKey:CourseID;references:ID"`
 }
 
 type PageTag struct {

@@ -26,11 +26,6 @@ func (p *PageService) GetPage(ctx context.Context, request *v1.GetPageRequest) (
 	panic("implement me")
 }
 
-func (p *PageService) ListPage(ctx context.Context, request *v1.ListPageRequest) (*v1.ListPageResponse, error) {
-	//TODO implement me
-	panic("implement me")
-}
-
 func (p *PageService) UpdatePage(ctx context.Context, request *v1.UpdatePageRequest) (*v1.UpdatePageResponse, error) {
 	//TODO implement me
 	panic("implement me")

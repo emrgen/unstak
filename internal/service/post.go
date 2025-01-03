@@ -16,7 +16,7 @@ import (
 )
 
 // NewPostService creates a new post service
-func NewPostService(cfg *tiny.ProjectConfig, store store.TinyPostStore, authClient authv1.UserServiceClient, docClient docv1.DocumentServiceClient) *PostService {
+func NewPostService(cfg *tiny.ProjectConfig, store store.UnPostStore, authClient authv1.UserServiceClient, docClient docv1.DocumentServiceClient) *PostService {
 	return &PostService{
 		cfg:        cfg,
 		store:      store,
@@ -30,7 +30,7 @@ var _ v1.PostServiceServer = new(PostService)
 // PostService is the service that provides post operations
 type PostService struct {
 	cfg        *tiny.ProjectConfig
-	store      store.TinyPostStore
+	store      store.UnPostStore
 	authClient authv1.UserServiceClient
 	docClient  docv1.DocumentServiceClient
 	v1.UnimplementedPostServiceServer
@@ -53,13 +53,13 @@ func (p *PostService) CreatePost(ctx context.Context, request *v1.CreatePostRequ
 	}
 
 	post := &model.Post{
-		ID:         uuid.New().String(),
-		CreatedByID:    userID.String(),
-		DocumentID: doc.GetDocument().GetId(),
+		ID:          uuid.New().String(),
+		CreatedByID: userID.String(),
+		DocumentID:  doc.GetDocument().GetId(),
 	}
 
 	// get user default space-id if no space-id is provided
-	err = p.store.Transaction(ctx, func(ctx context.Context, tx store.TinyPostStore) error {
+	err = p.store.Transaction(ctx, func(ctx context.Context, tx store.UnPostStore) error {
 		err = tx.CreatePost(ctx, post)
 		if err != nil {
 			return err
@@ -206,7 +206,7 @@ func (p *PostService) ListPost(ctx context.Context, request *v1.ListPostRequest)
 }
 
 func (p *PostService) UpdatePost(ctx context.Context, request *v1.UpdatePostRequest) (*v1.UpdatePostResponse, error) {
-	err := p.store.Transaction(ctx, func(ctx context.Context, tx store.TinyPostStore) error {
+	err := p.store.Transaction(ctx, func(ctx context.Context, tx store.UnPostStore) error {
 		post, err := tx.GetPost(ctx, uuid.MustParse(request.GetId()))
 		if err != nil {
 			return err
@@ -252,7 +252,7 @@ func (p *PostService) DeletePost(ctx context.Context, request *v1.DeletePostRequ
 }
 
 func (p *PostService) AddPostTag(ctx context.Context, request *v1.AddPostTagRequest) (*v1.AddPostTagResponse, error) {
-	err := p.store.Transaction(ctx, func(ctx context.Context, tx store.TinyPostStore) error {
+	err := p.store.Transaction(ctx, func(ctx context.Context, tx store.UnPostStore) error {
 		postID := uuid.MustParse(request.GetPostId())
 		tagID := uuid.MustParse(request.GetTagId())
 		post, err := tx.GetPost(ctx, postID)
@@ -287,7 +287,7 @@ func (p *PostService) AddPostTag(ctx context.Context, request *v1.AddPostTagRequ
 
 func (p *PostService) RemovePostTag(ctx context.Context, request *v1.RemovePostTagRequest) (*v1.RemovePostTagResponse, error) {
 	tags := make([]*v1.Tag, 0)
-	err := p.store.Transaction(ctx, func(ctx context.Context, tx store.TinyPostStore) error {
+	err := p.store.Transaction(ctx, func(ctx context.Context, tx store.UnPostStore) error {
 		postID := uuid.MustParse(request.GetPostId())
 		tagID := uuid.MustParse(request.GetTagId())
 		post, err := tx.GetPost(ctx, postID)
@@ -343,7 +343,7 @@ func (p *PostService) UpdatePostReaction(ctx context.Context, request *v1.Update
 		return nil, err
 	}
 
-	err = p.store.Transaction(ctx, func(ctx context.Context, tx store.TinyPostStore) error {
+	err = p.store.Transaction(ctx, func(ctx context.Context, tx store.UnPostStore) error {
 		_, err := tx.GetPost(ctx, uuid.MustParse(request.GetPostId()))
 		if err != nil {
 			return err
@@ -377,7 +377,7 @@ func (p *PostService) UpdatePostReaction(ctx context.Context, request *v1.Update
 
 func (p *PostService) UpdatePostStatus(ctx context.Context, request *v1.UpdatePostStatusRequest) (*v1.UpdatePostStatusResponse, error) {
 	postID := uuid.MustParse(request.GetPostId())
-	err := p.store.Transaction(ctx, func(ctx context.Context, tx store.TinyPostStore) error {
+	err := p.store.Transaction(ctx, func(ctx context.Context, tx store.UnPostStore) error {
 		post, err := tx.GetPost(ctx, postID)
 		if err != nil {
 			return err

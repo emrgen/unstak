@@ -19,11 +19,7 @@ func Migrate(db *gorm.DB) error {
 		return err
 	}
 
-	if err := db.AutoMigrate(&Book{}); err != nil {
-		return err
-	}
-
-	if err := db.AutoMigrate(&BookTag{}); err != nil {
+	if err := db.AutoMigrate(&Course{}); err != nil {
 		return err
 	}
 

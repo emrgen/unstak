@@ -18,9 +18,9 @@ type Post struct {
 	DocumentID  string     `gorm:"uuid;not null"`
 	CreatedByID string     `gorm:"not null"`
 	Authors     string     `gorm:"not null"` //Authors is a string of author IDs separated by commas
-	Tags        []*Tag     `gorm:"many2many:post_tags;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 	Reaction    string     `gorm:"not null"` // Reaction aggregates the reactions of all users who reacted to the post
 	Status      PostStatus `gorm:"not null;default:draft"`
+	Tags        []*Tag     `gorm:"many2many:post_tags;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 }
 
 // PostReaction is a map of reaction names to their counts

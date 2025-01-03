@@ -15,11 +15,66 @@ func NewGormStore(db *gorm.DB) *GormStore {
 }
 
 var (
-	_ TinyPostStore = (*GormStore)(nil)
+	_ UnPostStore = (*GormStore)(nil)
 )
 
 type GormStore struct {
 	db *gorm.DB
+}
+
+func (g *GormStore) CreateCourse(ctx context.Context, course *model.Course) error {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (g *GormStore) GetCourse(ctx context.Context, id uuid.UUID) (*model.Course, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (g *GormStore) ListCourses(ctx context.Context, spaceID uuid.UUID) ([]*model.Course, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (g *GormStore) UpdateCourse(ctx context.Context, course *model.Course) error {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (g *GormStore) DeleteCourse(ctx context.Context, id uuid.UUID) error {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (g *GormStore) UpdateCourseTags(ctx context.Context, courseID uuid.UUID, tags []*model.Tag) error {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (g *GormStore) CreatePage(ctx context.Context, page *model.Page) error {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (g *GormStore) GetPage(ctx context.Context, id uuid.UUID) (*model.Page, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (g *GormStore) UpdatePage(ctx context.Context, page *model.Page) error {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (g *GormStore) DeletePage(ctx context.Context, id uuid.UUID) error {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (g *GormStore) UpdatePageTags(ctx context.Context, pageID uuid.UUID, tags []*model.Tag) error {
+	//TODO implement me
+	panic("implement me")
 }
 
 // -----------------------
@@ -301,7 +356,7 @@ func (g *GormStore) RemoveOutletMember(ctx context.Context, spaceID, userID uuid
 	panic("implement me")
 }
 
-func (g *GormStore) Transaction(ctx context.Context, f func(ctx context.Context, store TinyPostStore) error) error {
+func (g *GormStore) Transaction(ctx context.Context, f func(ctx context.Context, store UnPostStore) error) error {
 	return g.db.Transaction(func(tx *gorm.DB) error {
 		return f(ctx, NewGormStore(tx))
 	})

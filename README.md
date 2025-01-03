@@ -15,23 +15,23 @@ The user can create token for project which can be used to access the project re
 
 ## Features
 
-- [x] Create project
-- [x] Update project
-- [x] List project
-- [x] Create space
-- [x] Update space
-- [x] List space
-- [x] Create unpost
-- [ ] Update unpost
-- [x] Delete unpost
-- [ ] Erase unpost
-- [x] Get unpost
-- [x] List unpost
-- [ ] Search unpost
-- [x] Document unpost
-- [x] Create tag (tags which are not used for more than 10 days will be deleted automatically)
+- [x] Create post
+- [ ] Update post
+- [x] Delete post
+- [ ] Erase post
+- [x] Get post
+- [x] List post
+- [ ] Search post
+- [x] Create tag
 - [x] List tag
 - [ ] Delete tag
+- [ ] Create collection
+- [ ] List collection
+- [ ] Delete collection
+- [ ] Create subscription
+- [ ] List subscription
+- [ ] Delete subscription
+- [ ] Update subscription
 
 ## Installation
 
