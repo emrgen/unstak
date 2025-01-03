@@ -9,5 +9,5 @@ type Course struct {
 	CreatedByID string     `gorm:"not null"`
 	Status      PostStatus `gorm:"not null;default:draft"`
 	Reaction    string     `gorm:"not null"` // Reaction aggregates the reactions of all users who reacted to the post
-	Tag         []*Tag     `gorm:"many2many:course_tags;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+	Tags        []*Tag     `gorm:"many2many:course_tags;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 }

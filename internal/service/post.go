@@ -252,9 +252,10 @@ func (p *PostService) DeletePost(ctx context.Context, request *v1.DeletePostRequ
 }
 
 func (p *PostService) AddPostTag(ctx context.Context, request *v1.AddPostTagRequest) (*v1.AddPostTagResponse, error) {
+	postID := uuid.MustParse(request.GetPostId())
+	tagID := uuid.MustParse(request.GetTagId())
+
 	err := p.store.Transaction(ctx, func(ctx context.Context, tx store.UnPostStore) error {
-		postID := uuid.MustParse(request.GetPostId())
-		tagID := uuid.MustParse(request.GetTagId())
 		post, err := tx.GetPost(ctx, postID)
 		if err != nil {
 			return err

@@ -403,10 +403,11 @@ message Course {
   string id = 1 [(validate.rules).string.uuid = true];
   string cover_page_id = 2 [(validate.rules).string.uuid = true];
   Page cover_page = 4;
-  string content_pages = 7;
   google.protobuf.Timestamp created_at = 10;
   google.protobuf.Timestamp updated_at = 11;
   string created_by_id = 12 [(validate.rules).string.uuid = true];
+  int64 version = 13;
+  repeated Tag tags = 14;
 }
 
 message CreateCourseRequest {
@@ -417,7 +418,7 @@ message CreateCourseRequest {
 }
 
 message CreateCourseResponse {
-  Course book = 1;
+  Course course = 1;
 }
 
 message GetCourseRequest {
@@ -425,7 +426,7 @@ message GetCourseRequest {
 }
 
 message GetCourseResponse {
-  Course book = 1;
+  Course course = 1;
 }
 
 message ListCourseRequest {
@@ -439,10 +440,6 @@ message ListCourseResponse {
 
 message UpdateCourseRequest {
   string id = 1 [(validate.rules).string.uuid = true];
-  string title = 2;
-  string content = 3;
-  string description = 4;
-  string thumbnail = 5;
 }
 
 message UpdateCourseResponse {
@@ -516,10 +513,16 @@ message Page {
   string id = 2 [(validate.rules).string.uuid = true];
   string title = 3;
   string content = 4;
-  string thumbnail = 5;
-  string content_pages = 6;
+  string summary = 5;
+  string excerpt = 6;
+  string thumbnail = 7;
+  string content_pages = 8;
+  repeated Tag tags = 9;
   google.protobuf.Timestamp created_at = 10;
   google.protobuf.Timestamp updated_at = 11;
+  int64 version = 12;
+  PostStatus status = 13;
+  string created_by_id = 14 [(validate.rules).string.uuid = true];
 }
 
 message CreatePageRequest {
@@ -543,9 +546,13 @@ message GetPageResponse {
 
 message UpdatePageRequest {
   string id = 1 [(validate.rules).string.uuid = true];
-  string title = 2;
-  string content = 3;
-  string thumbnail = 4;
+  optional string title = 2;
+  optional string content = 3;
+  optional string parts = 4;
+  optional string summary = 5;
+  optional string excerpt = 6;
+  optional string thumbnail = 9;
+  int64 version = 10;
 }
 
 message UpdatePageResponse {

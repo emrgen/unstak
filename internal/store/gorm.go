@@ -23,58 +23,68 @@ type GormStore struct {
 }
 
 func (g *GormStore) CreateCourse(ctx context.Context, course *model.Course) error {
-	//TODO implement me
-	panic("implement me")
+	return g.db.Create(course).Error
 }
 
 func (g *GormStore) GetCourse(ctx context.Context, id uuid.UUID) (*model.Course, error) {
-	//TODO implement me
-	panic("implement me")
+	var course model.Course
+	if err := g.db.Where("id = ?", id.String()).First(&course).Error; err != nil {
+		return nil, err
+	}
+
+	return &course, nil
 }
 
 func (g *GormStore) ListCourses(ctx context.Context, spaceID uuid.UUID) ([]*model.Course, error) {
-	//TODO implement me
-	panic("implement me")
+	var courses []*model.Course
+	if err := g.db.Where("space_id = ?", spaceID.String()).Find(&courses).Error; err != nil {
+		return nil, err
+	}
+
+	return courses, nil
 }
 
 func (g *GormStore) UpdateCourse(ctx context.Context, course *model.Course) error {
-	//TODO implement me
-	panic("implement me")
+	return g.db.Save(course).Error
 }
 
 func (g *GormStore) DeleteCourse(ctx context.Context, id uuid.UUID) error {
-	//TODO implement me
-	panic("implement me")
+	course := &model.Course{
+		ID: id.String(),
+	}
+	return g.db.Delete(course).Error
 }
 
 func (g *GormStore) UpdateCourseTags(ctx context.Context, courseID uuid.UUID, tags []*model.Tag) error {
-	//TODO implement me
-	panic("implement me")
+	return g.db.Model(&model.Course{ID: courseID.String()}).Association("Tags").Replace(tags)
 }
 
 func (g *GormStore) CreatePage(ctx context.Context, page *model.Page) error {
-	//TODO implement me
-	panic("implement me")
+	return g.db.Create(page).Error
 }
 
 func (g *GormStore) GetPage(ctx context.Context, id uuid.UUID) (*model.Page, error) {
-	//TODO implement me
-	panic("implement me")
+	var page model.Page
+	if err := g.db.Where("id = ?", id.String()).First(&page).Error; err != nil {
+		return nil, err
+	}
+
+	return &page, nil
 }
 
 func (g *GormStore) UpdatePage(ctx context.Context, page *model.Page) error {
-	//TODO implement me
-	panic("implement me")
+	return g.db.Save(page).Error
 }
 
 func (g *GormStore) DeletePage(ctx context.Context, id uuid.UUID) error {
-	//TODO implement me
-	panic("implement me")
+	page := &model.Page{
+		ID: id.String(),
+	}
+	return g.db.Delete(page).Error
 }
 
 func (g *GormStore) UpdatePageTags(ctx context.Context, pageID uuid.UUID, tags []*model.Tag) error {
-	//TODO implement me
-	panic("implement me")
+	return g.db.Model(&model.Page{ID: pageID.String()}).Association("Tags").Replace(tags)
 }
 
 // -----------------------
