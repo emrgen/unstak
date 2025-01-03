@@ -107,24 +107,16 @@ func getPost() *cobra.Command {
 }
 
 func postList() *cobra.Command {
-	var spaceID string
 	var postStatus string
 
 	command := &cobra.Command{
 		Use:   "list",
 		Short: "List posts",
 		Run: func(cmd *cobra.Command, args []string) {
-			if spaceID == "" {
-				logrus.Errorf("missing required flag: --space-id")
-				return
-			}
-
 			client, close := postClient()
 			defer close()
 
-			req := &v1.ListPostRequest{
-				SpaceId: spaceID,
-			}
+			req := &v1.ListPostRequest{}
 
 			if postStatus != "" {
 				var status v1.PostStatus
@@ -146,15 +138,14 @@ func postList() *cobra.Command {
 			}
 
 			table := tablewriter.NewWriter(os.Stdout)
-			table.SetHeader([]string{"ID", "Title", "Created At", "Updated At", "Status"})
+			table.SetHeader([]string{"ID", "Title", "Created At", "Updated At", "Status", "Version"})
 			for _, post := range res.Posts {
-				table.Append([]string{post.Id, post.Title, post.CreatedAt.AsTime().Format("2006-01-02 15:04:05"), post.UpdatedAt.AsTime().Format("2006-01-02 15:04:05"), post.Status.String()})
+				table.Append([]string{post.Id, post.Title, post.CreatedAt.AsTime().Format("2006-01-02 15:04:05"), post.UpdatedAt.AsTime().Format("2006-01-02 15:04:05"), post.Status.String(), fmt.Sprintf("%d", post.GetVersion())})
 			}
 			table.Render()
 		},
 	}
 
-	command.Flags().StringVarP(&spaceID, "space-id", "s", "", "space id")
 	command.Flags().StringVarP(&postStatus, "status", "t", "", "status of the post")
 
 	return command
