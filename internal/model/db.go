@@ -7,7 +7,7 @@ func Migrate(db *gorm.DB) error {
 		return err
 	}
 
-	if err := db.AutoMigrate(&Outlet{}); err != nil {
+	if err := db.AutoMigrate(&Subscription{}); err != nil {
 		return err
 	}
 

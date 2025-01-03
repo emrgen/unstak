@@ -187,7 +187,7 @@ message Collection {
 
   google.protobuf.Timestamp created_at = 10;
   google.protobuf.Timestamp updated_at = 11;
-  string owner_id = 12 [(validate.rules).string.uuid = true];
+  string created_by_id = 12 [(validate.rules).string.uuid = true];
 }
 
 message CreateCollectionRequest {
@@ -213,7 +213,7 @@ message GetCollectionResponse {
 message ListCollectionRequest {
   int32 page = 2;
   int32 per_page = 3;
-  optional string owner_id = 4 [(validate.rules).string.uuid = true];
+  optional string created_by_id = 4 [(validate.rules).string.uuid = true];
 }
 
 message ListCollectionResponse {
@@ -289,222 +289,6 @@ service CollectionService {
 
   rpc RemoveCollectionTag(RemoveCollectionTagRequest) returns (RemoveCollectionTagResponse) {
     option (google.api.http) = {delete: "/v1/collections/{collection_id}/tags/{tag_id}"};
-  }
-}
-
-message Outlet {
-  string id = 1 [(validate.rules).string.uuid = true];
-  string name = 2;
-  string description = 3;
-  string thumbnail = 4;
-  string owner_id = 5 [(validate.rules).string.uuid = true];
-  repeated OutletMember members = 6;
-  google.protobuf.Timestamp created_at = 10;
-  google.protobuf.Timestamp updated_at = 11;
-}
-
-message CreateOutletRequest {
-  string name = 2;
-  string description = 3;
-}
-
-message CreateOutletResponse {
-  Outlet outlet = 1;
-}
-
-message GetOutletRequest {
-  string id = 1 [(validate.rules).string.uuid = true];
-}
-
-message GetOutletResponse {
-  Outlet space = 1;
-}
-
-message ListOutletsRequest {
-  int32 page = 2;
-  int32 per_page = 3;
-}
-
-message ListOutletsResponse {
-  repeated Outlet outlets = 1;
-}
-
-message UpdateOutletRequest {
-  string id = 1 [(validate.rules).string.uuid = true];
-  string name = 2;
-  string description = 3;
-}
-
-message UpdateOutletResponse {
-  Outlet space = 1;
-}
-
-message DeleteOutletRequest {
-  string id = 1 [(validate.rules).string.uuid = true];
-}
-
-message DeleteOutletResponse {
-  string id = 1 [(validate.rules).string.uuid = true];
-}
-
-message AddOutletTagRequest {
-  string space_id = 1 [(validate.rules).string.uuid = true];
-  string tag_id = 2 [(validate.rules).string.uuid = true];
-}
-
-message AddOutletTagResponse {
-  Outlet space = 1;
-}
-
-message RemoveOutletTagRequest {
-  string space_id = 1 [(validate.rules).string.uuid = true];
-  string tag_id = 2 [(validate.rules).string.uuid = true];
-}
-
-message RemoveOutletTagResponse {
-  Outlet space = 1;
-}
-
-
-message TransferPostToOutletRequest {
-  string space_id = 1;
-  string post_id = 2;
-}
-
-message TransferPostToOutletResponse {
-  Outlet space = 1;
-}
-
-service OutletService {
-  rpc CreateOutlet(CreateOutletRequest) returns (CreateOutletResponse) {
-    option (google.api.http) = {
-      post: "/v1/spaces"
-      body: "*"
-    };
-  }
-
-  rpc GetOutlet(GetOutletRequest) returns (GetOutletResponse) {
-    option (google.api.http) = {get: "/v1/spaces/{id}"};
-  }
-
-  rpc ListOutlets(ListOutletsRequest) returns (ListOutletsResponse) {
-    option (google.api.http) = {get: "/v1/spaces"};
-  }
-
-  rpc UpdateOutlet(UpdateOutletRequest) returns (UpdateOutletResponse) {
-    option (google.api.http) = {
-      put: "/v1/spaces/{id}"
-      body: "*"
-    };
-  }
-
-  rpc DeleteOutlet(DeleteOutletRequest) returns (DeleteOutletResponse) {
-    option (google.api.http) = {delete: "/v1/spaces/{id}"};
-  }
-
-  rpc AddOutletTag(AddOutletTagRequest) returns (AddOutletTagResponse) {
-    option (google.api.http) = {post: "/v1/spaces/{space_id}/tags/{tag_id}"};
-  }
-
-  rpc RemoveOutletTag(RemoveOutletTagRequest) returns (RemoveOutletTagResponse) {
-    option (google.api.http) = {delete: "/v1/spaces/{space_id}/tags/{tag_id}"};
-  }
-
-
-  rpc TransferPostToOutlet(TransferPostToOutletRequest) returns (TransferPostToOutletResponse) {
-    option (google.api.http) = {post: "/v1/space/{space_id}/posts/{post_id}"};
-  }
-}
-
-enum Permission {
-  UNSPECIFIED = 0;
-  READER = 1;
-  WRITER = 2;
-  OWNER = 4;
-  ADMIN = 8;
-}
-
-message OutletMember {
-  string id = 1 [(validate.rules).string.uuid = true];
-  string space_id = 2;
-  string user_id = 3;
-  Permission permission = 4;
-  User user = 5;
-  google.protobuf.Timestamp created_at = 10;
-  google.protobuf.Timestamp updated_at = 11;
-}
-
-message CreateOutletMemberRequest {
-  string space_id = 1 [(validate.rules).string.uuid = true];
-  string user_id = 2 [(validate.rules).string.uuid = true];
-  string role = 3;
-}
-
-message CreateOutletMemberResponse {
-  OutletMember space_permission = 1;
-}
-
-message GetOutletMemberRequest {
-  string id = 1 [(validate.rules).string.uuid = true];
-}
-
-message GetOutletMemberResponse {
-  OutletMember space_permission = 1;
-}
-
-// ListOutletMemberRequest is a request message for listing space permissions.
-message ListOutletMemberRequest {
-  string space_id = 1 [(validate.rules).string.uuid = true];
-  int32 page = 2;
-  int32 per_page = 3;
-}
-
-message ListOutletMemberResponse {
-  repeated OutletMember space_permissions = 1;
-}
-
-message UpdateOutletMemberRequest {
-  string id = 1;
-  string role = 2;
-}
-
-message UpdateOutletMemberResponse {
-  OutletMember space_permission = 1;
-}
-
-message DeleteOutletMemberRequest {
-  string id = 1;
-}
-
-message DeleteOutletMemberResponse {
-  string id = 1;
-}
-
-service OutletMemberService {
-  rpc CreateOutletMember(CreateOutletMemberRequest) returns (CreateOutletMemberResponse) {
-    option (google.api.http) = {
-      post: "/v1/space_permissions"
-      body: "*"
-    };
-  }
-
-  rpc GetOutletMember(GetOutletMemberRequest) returns (GetOutletMemberResponse) {
-    option (google.api.http) = {get: "/v1/space_permissions/{id}"};
-  }
-
-  rpc ListOutletMember(ListOutletMemberRequest) returns (ListOutletMemberResponse) {
-    option (google.api.http) = {get: "/v1/space_permissions"};
-  }
-
-  rpc UpdateOutletMember(UpdateOutletMemberRequest) returns (UpdateOutletMemberResponse) {
-    option (google.api.http) = {
-      put: "/v1/space_permissions/{id}"
-      body: "*"
-    };
-  }
-
-  rpc DeleteOutletMember(DeleteOutletMemberRequest) returns (DeleteOutletMemberResponse) {
-    option (google.api.http) = {delete: "/v1/space_permissions/{id}"};
   }
 }
 
@@ -624,7 +408,7 @@ message Book {
   string content_pages = 7;
   google.protobuf.Timestamp created_at = 10;
   google.protobuf.Timestamp updated_at = 11;
-  string owner_id = 12 [(validate.rules).string.uuid = true];
+  string created_by_id = 12 [(validate.rules).string.uuid = true];
 }
 
 message CreateBookRequest {
@@ -841,3 +625,223 @@ service PageService {
     option (google.api.http) = {delete: "/v1/pages/{page_id}/tags/{tag_id}"};
   }
 }
+
+// -------------------------
+// Subscription
+// -------------------------
+
+message Subscription {
+  string id = 1 [(validate.rules).string.uuid = true];
+  string name = 2; 
+  string description = 3;
+  string thumbnail = 4;
+  string created_by_id = 5 [(validate.rules).string.uuid = true];
+  repeated SubscriptionMember members = 6;
+  google.protobuf.Timestamp created_at = 10;
+  google.protobuf.Timestamp updated_at = 11;
+}
+
+message CreateSubscriptionRequest {
+  string name = 2;
+  string description = 3;
+}
+
+message CreateSubscriptionResponse {
+  Subscription outlet = 1;
+}
+
+message GetSubscriptionRequest {
+  string id = 1 [(validate.rules).string.uuid = true];
+}
+
+message GetSubscriptionResponse {
+  Subscription space = 1;
+}
+
+message ListSubscriptionsRequest {
+  int32 page = 2;
+  int32 per_page = 3;
+}
+
+message ListSubscriptionsResponse {
+  repeated Subscription outlets = 1;
+}
+
+message UpdateSubscriptionRequest {
+  string id = 1 [(validate.rules).string.uuid = true];
+  string name = 2;
+  string description = 3;
+}
+
+message UpdateSubscriptionResponse {
+  Subscription space = 1;
+}
+
+message DeleteSubscriptionRequest {
+  string id = 1 [(validate.rules).string.uuid = true];
+}
+
+message DeleteSubscriptionResponse {
+  string id = 1 [(validate.rules).string.uuid = true];
+}
+
+message AddSubscriptionTagRequest {
+  string space_id = 1 [(validate.rules).string.uuid = true];
+  string tag_id = 2 [(validate.rules).string.uuid = true];
+}
+
+message AddSubscriptionTagResponse {
+  Subscription space = 1;
+}
+
+message RemoveSubscriptionTagRequest {
+  string space_id = 1 [(validate.rules).string.uuid = true];
+  string tag_id = 2 [(validate.rules).string.uuid = true];
+}
+
+message RemoveSubscriptionTagResponse {
+  Subscription space = 1;
+}
+
+message TransferPostToSubscriptionRequest {
+  string space_id = 1;
+  string post_id = 2;
+}
+
+message TransferPostToSubscriptionResponse {
+  Subscription space = 1;
+}
+
+service SubscriptionService {
+  rpc CreateSubscription(CreateSubscriptionRequest) returns (CreateSubscriptionResponse) {
+    option (google.api.http) = {
+      post: "/v1/spaces"
+      body: "*"
+    };
+  }
+
+  rpc GetSubscription(GetSubscriptionRequest) returns (GetSubscriptionResponse) {
+    option (google.api.http) = {get: "/v1/spaces/{id}"};
+  }
+
+  rpc ListSubscriptions(ListSubscriptionsRequest) returns (ListSubscriptionsResponse) {
+    option (google.api.http) = {get: "/v1/spaces"};
+  }
+
+  rpc UpdateSubscription(UpdateSubscriptionRequest) returns (UpdateSubscriptionResponse) {
+    option (google.api.http) = {
+      put: "/v1/spaces/{id}"
+      body: "*"
+    };
+  }
+
+  rpc DeleteSubscription(DeleteSubscriptionRequest) returns (DeleteSubscriptionResponse) {
+    option (google.api.http) = {delete: "/v1/spaces/{id}"};
+  }
+
+  rpc AddSubscriptionTag(AddSubscriptionTagRequest) returns (AddSubscriptionTagResponse) {
+    option (google.api.http) = {post: "/v1/spaces/{space_id}/tags/{tag_id}"};
+  }
+
+  rpc RemoveSubscriptionTag(RemoveSubscriptionTagRequest) returns (RemoveSubscriptionTagResponse) {
+    option (google.api.http) = {delete: "/v1/spaces/{space_id}/tags/{tag_id}"};
+  }
+
+
+  rpc TransferPostToSubscription(TransferPostToSubscriptionRequest) returns (TransferPostToSubscriptionResponse) {
+    option (google.api.http) = {post: "/v1/space/{space_id}/posts/{post_id}"};
+  }
+}
+
+enum Permission {
+  UNSPECIFIED = 0;
+  READER = 1;
+  WRITER = 2;
+  OWNER = 4;
+  ADMIN = 8;
+}
+
+message SubscriptionMember {
+  string id = 1 [(validate.rules).string.uuid = true];
+  string space_id = 2;
+  string user_id = 3;
+  Permission permission = 4;
+  User user = 5;
+  google.protobuf.Timestamp created_at = 10;
+  google.protobuf.Timestamp updated_at = 11;
+}
+
+message CreateSubscriptionMemberRequest {
+  string space_id = 1 [(validate.rules).string.uuid = true];
+  string user_id = 2 [(validate.rules).string.uuid = true];
+  string role = 3;
+}
+
+message CreateSubscriptionMemberResponse {
+  SubscriptionMember space_permission = 1;
+}
+
+message GetSubscriptionMemberRequest {
+  string id = 1 [(validate.rules).string.uuid = true];
+}
+
+message GetSubscriptionMemberResponse {
+  SubscriptionMember space_permission = 1;
+}
+
+// ListSubscriptionMemberRequest is a request message for listing space permissions.
+message ListSubscriptionMemberRequest {
+  string space_id = 1 [(validate.rules).string.uuid = true];
+  int32 page = 2;
+  int32 per_page = 3;
+}
+
+message ListSubscriptionMemberResponse {
+  repeated SubscriptionMember space_permissions = 1;
+}
+
+message UpdateSubscriptionMemberRequest {
+  string id = 1;
+  string role = 2;
+}
+
+message UpdateSubscriptionMemberResponse {
+  SubscriptionMember space_permission = 1;
+}
+
+message DeleteSubscriptionMemberRequest {
+  string id = 1;
+}
+
+message DeleteSubscriptionMemberResponse {
+  string id = 1;
+}
+
+service SubscriptionMemberService {
+  rpc CreateSubscriptionMember(CreateSubscriptionMemberRequest) returns (CreateSubscriptionMemberResponse) {
+    option (google.api.http) = {
+      post: "/v1/space_permissions"
+      body: "*"
+    };
+  }
+
+  rpc GetSubscriptionMember(GetSubscriptionMemberRequest) returns (GetSubscriptionMemberResponse) {
+    option (google.api.http) = {get: "/v1/space_permissions/{id}"};
+  }
+
+  rpc ListSubscriptionMember(ListSubscriptionMemberRequest) returns (ListSubscriptionMemberResponse) {
+    option (google.api.http) = {get: "/v1/space_permissions"};
+  }
+
+  rpc UpdateSubscriptionMember(UpdateSubscriptionMemberRequest) returns (UpdateSubscriptionMemberResponse) {
+    option (google.api.http) = {
+      put: "/v1/space_permissions/{id}"
+      body: "*"
+    };
+  }
+
+  rpc DeleteSubscriptionMember(DeleteSubscriptionMemberRequest) returns (DeleteSubscriptionMemberResponse) {
+    option (google.api.http) = {delete: "/v1/space_permissions/{id}"};
+  }
+}
+

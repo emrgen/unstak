@@ -19,17 +19,17 @@ type TinyPostStore interface {
 
 type OutletStore interface {
 	// CreateOutlet creates a new space.
-	CreateOutlet(ctx context.Context, space *model.Outlet) error
+	CreateOutlet(ctx context.Context, space *model.Subscription) error
 	// GetOutlet retrieves a space by ID.
-	GetOutlet(ctx context.Context, spaceID uuid.UUID) (*model.Outlet, error)
+	GetOutlet(ctx context.Context, spaceID uuid.UUID) (*model.Subscription, error)
 	// ListOutlets retrieves a list of spaces by user ID.
-	ListOutlets(ctx context.Context, userID uuid.UUID) ([]*model.Outlet, error)
+	ListOutlets(ctx context.Context, userID uuid.UUID) ([]*model.Subscription, error)
 	// UpdateOutlet updates a space.
-	UpdateOutlet(ctx context.Context, space *model.Outlet) error
+	UpdateOutlet(ctx context.Context, space *model.Subscription) error
 	// DeleteOutlet deletes a space by ID.
 	DeleteOutlet(ctx context.Context, spaceID uuid.UUID) error
 	// GetDefaultOutlet retrieves the default space of a user.
-	GetDefaultOutlet(ctx context.Context, userID uuid.UUID) (*model.Outlet, error)
+	GetDefaultOutlet(ctx context.Context, userID uuid.UUID) (*model.Subscription, error)
 }
 
 type OutletMemberStore interface {

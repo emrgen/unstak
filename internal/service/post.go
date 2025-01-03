@@ -54,7 +54,7 @@ func (p *PostService) CreatePost(ctx context.Context, request *v1.CreatePostRequ
 
 	post := &model.Post{
 		ID:         uuid.New().String(),
-		OwnerID:    userID.String(),
+		CreatedByID:    userID.String(),
 		DocumentID: doc.GetDocument().GetId(),
 	}
 
@@ -160,7 +160,7 @@ func (p *PostService) ListPost(ctx context.Context, request *v1.ListPostRequest)
 
 	userIDs := mapset.NewSet[string]()
 	for _, post := range posts {
-		userIDs.Add(post.OwnerID)
+		userIDs.Add(post.CreatedByID)
 	}
 
 	users := make(map[string]*authv1.User)
@@ -180,7 +180,7 @@ func (p *PostService) ListPost(ctx context.Context, request *v1.ListPostRequest)
 		}
 		postProto := &v1.Post{
 			Id:          post.ID,
-			CreatedById: post.OwnerID,
+			CreatedById: post.CreatedByID,
 			Status:      postStatusToProto(post.Status),
 			Title:       doc.GetTitle(),
 			Summary:     doc.Summary,
@@ -191,7 +191,7 @@ func (p *PostService) ListPost(ctx context.Context, request *v1.ListPostRequest)
 			UpdatedAt:   timestamppb.New(post.UpdatedAt),
 		}
 		responsePosts = append(responsePosts, postProto)
-		if user, ok := users[post.OwnerID]; ok {
+		if user, ok := users[post.CreatedByID]; ok {
 			postProto.CreatedByUser = &v1.User{
 				Id:    user.Id,
 				Name:  user.Username,

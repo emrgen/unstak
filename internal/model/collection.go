@@ -8,6 +8,7 @@ type Collection struct {
 	ID          string `gorm:"primaryKey;uuid"`
 	Name        string `gorm:"not null"`
 	CreatedByID string `gorm:"uuid;not null"`
+	Private     bool   `gorm:"default:true"`
 	Tags        []*Tag `gorm:"many2many:collection_tags;"` // Tags are automatically added to the collection when a post is added
 }
 

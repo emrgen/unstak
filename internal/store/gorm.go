@@ -42,14 +42,14 @@ func (g *GormStore) GetPost(ctx context.Context, id uuid.UUID) (*model.Post, err
 func (g *GormStore) ListPostByOwnerID(ctx context.Context, userID uuid.UUID, status *model.PostStatus) ([]*model.Post, error) {
 	var posts []*model.Post
 	if status != nil {
-		if err := g.db.Where("owner_id = ? AND status = ?", userID.String(), status).Find(&posts).Error; err != nil {
+		if err := g.db.Where("created_by_id = ? AND status = ?", userID.String(), status).Find(&posts).Error; err != nil {
 			return nil, err
 		}
 
 		return posts, nil
 	}
 
-	if err := g.db.Where("owner_id = ?", userID.String()).Find(&posts).Error; err != nil {
+	if err := g.db.Where("created_by_id = ?", userID.String()).Find(&posts).Error; err != nil {
 		return nil, err
 	}
 
@@ -64,7 +64,7 @@ func (g *GormStore) UpdatePostTags(ctx context.Context, postID uuid.UUID, tags [
 // returns a list of tinyposts the user has access to.
 func (g *GormStore) ListPostByUserID(ctx context.Context, userID uuid.UUID) ([]*model.Post, error) {
 	var posts []*model.Post
-	if err := g.db.Where("owner_id = ?", userID.String()).Find(&posts).Error; err != nil {
+	if err := g.db.Where("created_by_id = ?", userID.String()).Find(&posts).Error; err != nil {
 		return nil, err
 	}
 
@@ -175,7 +175,7 @@ func (g *GormStore) ListCollectionsByOwnerID(ctx context.Context, userID uuid.UU
 
 func (g *GormStore) ListCollectionsByUserID(ctx context.Context, userID uuid.UUID) ([]*model.Collection, error) {
 	var collections []*model.Collection
-	if err := g.db.Where("owner_id = ?", userID.String()).Find(&collections).Error; err != nil {
+	if err := g.db.Where("created_by_id = ?", userID.String()).Find(&collections).Error; err != nil {
 		return nil, err
 	}
 
@@ -240,12 +240,12 @@ func (g *GormStore) UpdateOutletMember(ctx context.Context, member *model.Outlet
 	panic("implement me")
 }
 
-func (g *GormStore) CreateOutlet(ctx context.Context, space *model.Outlet) error {
+func (g *GormStore) CreateOutlet(ctx context.Context, space *model.Subscription) error {
 	return g.db.Create(space).Error
 }
 
-func (g *GormStore) GetOutlet(ctx context.Context, id uuid.UUID) (*model.Outlet, error) {
-	var space model.Outlet
+func (g *GormStore) GetOutlet(ctx context.Context, id uuid.UUID) (*model.Subscription, error) {
+	var space model.Subscription
 	if err := g.db.Where("id = ?", id.String()).First(&space).Error; err != nil {
 		return nil, err
 	}
@@ -253,29 +253,29 @@ func (g *GormStore) GetOutlet(ctx context.Context, id uuid.UUID) (*model.Outlet,
 	return &space, nil
 }
 
-func (g *GormStore) ListOutlets(ctx context.Context, userID uuid.UUID) ([]*model.Outlet, error) {
-	var spaces []*model.Outlet
-	if err := g.db.Where("owner_id = ?", userID.String()).Find(&spaces).Error; err != nil {
+func (g *GormStore) ListOutlets(ctx context.Context, userID uuid.UUID) ([]*model.Subscription, error) {
+	var spaces []*model.Subscription
+	if err := g.db.Where("created_by_id = ?", userID.String()).Find(&spaces).Error; err != nil {
 		return nil, err
 	}
 
 	return spaces, nil
 }
 
-func (g *GormStore) UpdateOutlet(ctx context.Context, space *model.Outlet) error {
+func (g *GormStore) UpdateOutlet(ctx context.Context, space *model.Subscription) error {
 	return g.db.Save(space).Error
 }
 
 func (g *GormStore) DeleteOutlet(ctx context.Context, id uuid.UUID) error {
-	post := &model.Outlet{
+	post := &model.Subscription{
 		ID: id.String(),
 	}
 	return g.db.Delete(post).Error
 }
 
-func (g *GormStore) GetDefaultOutlet(ctx context.Context, userID uuid.UUID) (*model.Outlet, error) {
-	var space model.Outlet
-	if err := g.db.Where("owner_id = ? AND user_default = true", userID.String()).First(&space).Error; err != nil {
+func (g *GormStore) GetDefaultOutlet(ctx context.Context, userID uuid.UUID) (*model.Subscription, error) {
+	var space model.Subscription
+	if err := g.db.Where("created_by_id = ? AND user_default = true", userID.String()).First(&space).Error; err != nil {
 		return nil, err
 	}
 
