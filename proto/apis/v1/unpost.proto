@@ -93,8 +93,8 @@ message DeletePostResponse {
 }
 
 message AddPostTagRequest {
-  string post_id = 1;
-  string tag_id = 2;
+  string post_id = 1 [(validate.rules).string.uuid = true];
+  string tag_id = 2 [(validate.rules).string.uuid = true];
 }
 
 message AddPostTagResponse {

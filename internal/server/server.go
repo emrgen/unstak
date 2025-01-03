@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	gatewayfile "github.com/black-06/grpc-gateway-file"
+	authv1 "github.com/emrgen/authbase/apis/v1"
 	docv1 "github.com/emrgen/document/apis/v1"
 	gopackv1 "github.com/emrgen/gopack/apis/v1"
 	"github.com/emrgen/gopack/token"
@@ -59,8 +60,9 @@ func Start(grpcPort, httpPort string) error {
 
 	authConn, err := grpc.NewClient(":4000", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	defer authConn.Close()
-	// authClient provides the token service
-	authClient := gopackv1.NewTokenServiceClient(authConn)
+	// tokenClient provides the token service
+	tokenClient := gopackv1.NewTokenServiceClient(authConn)
+	authClient := authv1.NewUserServiceClient(authConn)
 
 	//tinyConn, err := grpc.NewClient(":4010", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	//defer tinyConn.Close()
@@ -76,7 +78,7 @@ func Start(grpcPort, httpPort string) error {
 		grpc.UnaryInterceptor(grpcmiddleware.ChainUnaryServer(
 			grpcvalidator.UnaryServerInterceptor(),
 			// verify the token
-			token.VerifyTokenInterceptor(authClient),
+			token.VerifyTokenInterceptor(tokenClient),
 			UnaryGrpcRequestTimeInterceptor(),
 		)),
 	)

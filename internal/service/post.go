@@ -2,9 +2,9 @@ package service
 
 import (
 	"context"
+	mapset "github.com/deckarep/golang-set/v2"
 	authv1 "github.com/emrgen/authbase/apis/v1"
 	docv1 "github.com/emrgen/document/apis/v1"
-	gopackv1 "github.com/emrgen/gopack/apis/v1"
 	gox "github.com/emrgen/gopack/x"
 	tiny "github.com/emrgen/tinys/tiny"
 	v1 "github.com/emrgen/unpost/apis/v1"
@@ -16,7 +16,7 @@ import (
 )
 
 // NewPostService creates a new post service
-func NewPostService(cfg *tiny.ProjectConfig, store store.TinyPostStore, authClient gopackv1.TokenServiceClient, docClient docv1.DocumentServiceClient) *PostService {
+func NewPostService(cfg *tiny.ProjectConfig, store store.TinyPostStore, authClient authv1.UserServiceClient, docClient docv1.DocumentServiceClient) *PostService {
 	return &PostService{
 		cfg:        cfg,
 		store:      store,
@@ -31,7 +31,7 @@ var _ v1.PostServiceServer = new(PostService)
 type PostService struct {
 	cfg        *tiny.ProjectConfig
 	store      store.TinyPostStore
-	authClient gopackv1.TokenServiceClient
+	authClient authv1.UserServiceClient
 	docClient  docv1.DocumentServiceClient
 	v1.UnimplementedPostServiceServer
 }
@@ -158,13 +158,19 @@ func (p *PostService) ListPost(ctx context.Context, request *v1.ListPostRequest)
 		documents[doc.GetId()] = doc
 	}
 
-	userIDs := make([]string, 0)
+	userIDs := mapset.NewSet[string]()
 	for _, post := range posts {
-		userIDs = append(userIDs, post.OwnerID)
+		userIDs.Add(post.OwnerID)
 	}
 
-	//users, err := p.authClient.ListUser(ctx, &authv1.ListUserRequest{
 	users := make(map[string]*authv1.User)
+	//if res, err := p.authClient.ListUsers(ctx, &authv1.ListUsersRequest{}); err != nil {
+	//	return nil, err
+	//} else {
+	//	for _, user := range res.GetUsers() {
+	//		users[user.Id] = user
+	//	}
+	//}
 
 	var responsePosts []*v1.Post
 	for _, post := range posts {
@@ -180,6 +186,7 @@ func (p *PostService) ListPost(ctx context.Context, request *v1.ListPostRequest)
 			Summary:     doc.Summary,
 			Excerpt:     doc.Excerpt,
 			Thumbnail:   doc.Thumbnail,
+			Version:     doc.Version,
 			CreatedAt:   timestamppb.New(post.CreatedAt),
 			UpdatedAt:   timestamppb.New(post.UpdatedAt),
 		}

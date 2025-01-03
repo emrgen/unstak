@@ -14,6 +14,7 @@ require (
 	github.com/andybalholm/brotli v1.1.1
 	github.com/black-06/grpc-gateway-file v0.1.2
 	github.com/confluentinc/confluent-kafka-go v1.9.2
+	github.com/deckarep/golang-set/v2 v2.7.0
 	github.com/emrgen/authbase v0.0.0-00010101000000-000000000000
 	github.com/emrgen/document v0.0.0-00010101000000-000000000000
 	github.com/emrgen/gopack v0.0.0-00010101000000-000000000000

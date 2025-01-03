@@ -36,7 +36,8 @@ func (t *TagService) CreateTag(ctx context.Context, request *v1.CreateTagRequest
 
 	return &v1.CreateTagResponse{
 		Tag: &v1.Tag{
-			Id: tag.ID,
+			Id:   tag.ID,
+			Name: request.GetName(),
 		},
 	}, nil
 }
@@ -49,7 +50,8 @@ func (t *TagService) GetTag(ctx context.Context, request *v1.GetTagRequest) (*v1
 
 	return &v1.GetTagResponse{
 		Tag: &v1.Tag{
-			Id: tag.ID,
+			Id:   tag.ID,
+			Name: tag.Name,
 		},
 	}, nil
 }
@@ -87,7 +89,8 @@ func (t *TagService) UpdateTag(ctx context.Context, request *v1.UpdateTagRequest
 
 	return &v1.UpdateTagResponse{
 		Tag: &v1.Tag{
-			Id: tag.ID,
+			Id:   tag.ID,
+			Name: tag.Name,
 		},
 	}, nil
 }
