@@ -8,9 +8,9 @@ import (
 )
 
 type UnPostStore interface {
-	OutletStore
+	SubscriptionStore
 	PostStore
-	OutletMemberStore
+	SubscriptionMemberStore
 	CollectionStore
 	CourseStore
 	PageStore
@@ -19,32 +19,32 @@ type UnPostStore interface {
 	Migrate() error
 }
 
-type OutletStore interface {
-	// CreateOutlet creates a new space.
-	CreateOutlet(ctx context.Context, space *model.Subscription) error
-	// GetOutlet retrieves a space by ID.
-	GetOutlet(ctx context.Context, spaceID uuid.UUID) (*model.Subscription, error)
-	// ListOutlets retrieves a list of spaces by user ID.
-	ListOutlets(ctx context.Context, userID uuid.UUID) ([]*model.Subscription, error)
-	// UpdateOutlet updates a space.
-	UpdateOutlet(ctx context.Context, space *model.Subscription) error
-	// DeleteOutlet deletes a space by ID.
-	DeleteOutlet(ctx context.Context, spaceID uuid.UUID) error
-	// GetDefaultOutlet retrieves the default space of a user.
-	GetDefaultOutlet(ctx context.Context, userID uuid.UUID) (*model.Subscription, error)
+type SubscriptionStore interface {
+	// CreateSubscription creates a new space.
+	CreateSubscription(ctx context.Context, space *model.Subscription) error
+	// GetSubscription retrieves a space by ID.
+	GetSubscription(ctx context.Context, spaceID uuid.UUID) (*model.Subscription, error)
+	// ListSubscriptions retrieves a list of spaces by user ID.
+	ListSubscriptions(ctx context.Context, userID uuid.UUID) ([]*model.Subscription, error)
+	// UpdateSubscription updates a space.
+	UpdateSubscription(ctx context.Context, space *model.Subscription) error
+	// DeleteSubscription deletes a space by ID.
+	DeleteSubscription(ctx context.Context, spaceID uuid.UUID) error
+	// GetDefaultSubscription retrieves the default space of a user.
+	GetDefaultSubscription(ctx context.Context, userID uuid.UUID) (*model.Subscription, error)
 }
 
-type OutletMemberStore interface {
-	// AddOutletMember creates a new member.
-	AddOutletMember(ctx context.Context, member *model.OutletMember) error
-	// GetOutletMember retrieves a member by ID.
-	GetOutletMember(ctx context.Context, spaceID, userID uuid.UUID) (*model.OutletMember, error)
-	// ListOutletMembers retrieves a list of members by space ID.
-	ListOutletMembers(ctx context.Context, spaceID uuid.UUID) ([]*uuid.UUID, error)
-	// UpdateOutletMember updates a member.
-	UpdateOutletMember(ctx context.Context, member *model.OutletMember) error
-	// RemoveOutletMember deletes a member by ID.
-	RemoveOutletMember(ctx context.Context, spaceID, userID uuid.UUID) error
+type SubscriptionMemberStore interface {
+	// AddSubscriptionMember creates a new member.
+	AddSubscriptionMember(ctx context.Context, member *model.SubscriptionMember) error
+	// GetSubscriptionMember retrieves a member by ID.
+	GetSubscriptionMember(ctx context.Context, subMemberID uuid.UUID) (*model.SubscriptionMember, error)
+	// ListSubscriptionMembers retrieves a list of members by space ID.
+	ListSubscriptionMembers(ctx context.Context, subID uuid.UUID) ([]*model.SubscriptionMember, error)
+	// UpdateSubscriptionMember updates a member.
+	UpdateSubscriptionMember(ctx context.Context, member *model.SubscriptionMember) error
+	// RemoveSubscriptionMember deletes a member by ID.
+	RemoveSubscriptionMember(ctx context.Context, subMemberID uuid.UUID) error
 }
 
 type PostStore interface {
@@ -56,8 +56,8 @@ type PostStore interface {
 	ListPostByOwnerID(ctx context.Context, userID uuid.UUID, status *model.PostStatus) ([]*model.Post, error)
 	// ListPostByUserID retrieves a list of tinyposts by user ID.
 	ListPostByUserID(ctx context.Context, userID uuid.UUID) ([]*model.Post, error)
-	// ListPostsByOutletID retrieves a list of tinyposts by space ID.
-	ListPostsByOutletID(ctx context.Context, spaceID uuid.UUID) ([]*model.Post, error)
+	// ListPostsBySubscriptionID retrieves a list of tinyposts by space ID.
+	ListPostsBySubscriptionID(ctx context.Context, spaceID uuid.UUID) ([]*model.Post, error)
 	// UpdatePost updates a post.
 	UpdatePost(ctx context.Context, doc *model.Post) error
 	// DeletePost deletes a post by ID.

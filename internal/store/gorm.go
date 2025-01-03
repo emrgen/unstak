@@ -88,7 +88,7 @@ func (g *GormStore) UpdatePageTags(ctx context.Context, pageID uuid.UUID, tags [
 }
 
 // -----------------------
-// OutletStore
+// SubscriptionStore
 // -----------------------
 
 func (g *GormStore) CreatePost(ctx context.Context, doc *model.Post) error {
@@ -136,8 +136,8 @@ func (g *GormStore) ListPostByUserID(ctx context.Context, userID uuid.UUID) ([]*
 	return posts, nil
 }
 
-// ListPostsByOutletID retrieves a list of tinyposts by space ID.
-func (g *GormStore) ListPostsByOutletID(ctx context.Context, spaceID uuid.UUID) ([]*model.Post, error) {
+// ListPostsBySubscriptionID retrieves a list of tinyposts by space ID.
+func (g *GormStore) ListPostsBySubscriptionID(ctx context.Context, spaceID uuid.UUID) ([]*model.Post, error) {
 	var posts []*model.Post
 	if err := g.db.Where("space_id = ?", spaceID.String()).Find(&posts).Error; err != nil {
 		return nil, err
@@ -162,17 +162,17 @@ func (g *GormStore) UpdatePostReaction(ctx context.Context, userID, postID uuid.
 }
 
 func (g *GormStore) AddMember(ctx context.Context, spaceID, userID uuid.UUID, permission uint64) error {
-	member := &model.OutletMember{
-		OutletID:   spaceID.String(),
-		UserID:     userID.String(),
-		Permission: permission,
+	member := &model.SubscriptionMember{
+		SubscriptionID: spaceID.String(),
+		UserID:         userID.String(),
+		Permission:     permission,
 	}
 
 	return g.db.Create(member).Error
 }
 
-func (g *GormStore) GetMember(ctx context.Context, spaceID, userID uuid.UUID) (*model.OutletMember, error) {
-	var member model.OutletMember
+func (g *GormStore) GetMember(ctx context.Context, spaceID, userID uuid.UUID) (*model.SubscriptionMember, error) {
+	var member model.SubscriptionMember
 	if err := g.db.Where("space_id = ? AND user_id = ?", spaceID.String(), userID.String()).First(&member).Error; err != nil {
 		return nil, err
 	}
@@ -182,7 +182,7 @@ func (g *GormStore) GetMember(ctx context.Context, spaceID, userID uuid.UUID) (*
 }
 
 func (g *GormStore) ListMembers(ctx context.Context, spaceID uuid.UUID) ([]*uuid.UUID, error) {
-	var members []*model.OutletMember
+	var members []*model.SubscriptionMember
 	if err := g.db.Where("space_id = ?", spaceID.String()).Find(&members).Error; err != nil {
 		return nil, err
 	}
@@ -200,14 +200,14 @@ func (g *GormStore) ListMembers(ctx context.Context, spaceID uuid.UUID) ([]*uuid
 
 }
 
-func (g *GormStore) UpdateMember(ctx context.Context, member *model.OutletMember) error {
+func (g *GormStore) UpdateMember(ctx context.Context, member *model.SubscriptionMember) error {
 	return g.db.Save(member).Error
 }
 
 func (g *GormStore) RemoveMember(ctx context.Context, spaceID, userID uuid.UUID) error {
-	member := &model.OutletMember{
-		OutletID: spaceID.String(),
-		UserID:   userID.String(),
+	member := &model.SubscriptionMember{
+		SubscriptionID: spaceID.String(),
+		UserID:         userID.String(),
 	}
 	return g.db.Delete(member).Error
 }
@@ -300,16 +300,16 @@ func (g *GormStore) DeleteTag(ctx context.Context, id uuid.UUID) error {
 	return g.db.Delete(&model.Tag{ID: id.String()}).Error
 }
 
-func (g *GormStore) UpdateOutletMember(ctx context.Context, member *model.OutletMember) error {
+func (g *GormStore) UpdateSubscriptionMember(ctx context.Context, member *model.SubscriptionMember) error {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (g *GormStore) CreateOutlet(ctx context.Context, space *model.Subscription) error {
+func (g *GormStore) CreateSubscription(ctx context.Context, space *model.Subscription) error {
 	return g.db.Create(space).Error
 }
 
-func (g *GormStore) GetOutlet(ctx context.Context, id uuid.UUID) (*model.Subscription, error) {
+func (g *GormStore) GetSubscription(ctx context.Context, id uuid.UUID) (*model.Subscription, error) {
 	var space model.Subscription
 	if err := g.db.Where("id = ?", id.String()).First(&space).Error; err != nil {
 		return nil, err
@@ -318,7 +318,7 @@ func (g *GormStore) GetOutlet(ctx context.Context, id uuid.UUID) (*model.Subscri
 	return &space, nil
 }
 
-func (g *GormStore) ListOutlets(ctx context.Context, userID uuid.UUID) ([]*model.Subscription, error) {
+func (g *GormStore) ListSubscriptions(ctx context.Context, userID uuid.UUID) ([]*model.Subscription, error) {
 	var spaces []*model.Subscription
 	if err := g.db.Where("created_by_id = ?", userID.String()).Find(&spaces).Error; err != nil {
 		return nil, err
@@ -327,18 +327,18 @@ func (g *GormStore) ListOutlets(ctx context.Context, userID uuid.UUID) ([]*model
 	return spaces, nil
 }
 
-func (g *GormStore) UpdateOutlet(ctx context.Context, space *model.Subscription) error {
+func (g *GormStore) UpdateSubscription(ctx context.Context, space *model.Subscription) error {
 	return g.db.Save(space).Error
 }
 
-func (g *GormStore) DeleteOutlet(ctx context.Context, id uuid.UUID) error {
+func (g *GormStore) DeleteSubscription(ctx context.Context, id uuid.UUID) error {
 	post := &model.Subscription{
 		ID: id.String(),
 	}
 	return g.db.Delete(post).Error
 }
 
-func (g *GormStore) GetDefaultOutlet(ctx context.Context, userID uuid.UUID) (*model.Subscription, error) {
+func (g *GormStore) GetDefaultSubscription(ctx context.Context, userID uuid.UUID) (*model.Subscription, error) {
 	var space model.Subscription
 	if err := g.db.Where("created_by_id = ? AND user_default = true", userID.String()).First(&space).Error; err != nil {
 		return nil, err
@@ -347,21 +347,26 @@ func (g *GormStore) GetDefaultOutlet(ctx context.Context, userID uuid.UUID) (*mo
 	return &space, nil
 }
 
-func (g *GormStore) AddOutletMember(ctx context.Context, member *model.OutletMember) error {
+func (g *GormStore) AddSubscriptionMember(ctx context.Context, member *model.SubscriptionMember) error {
 	return g.db.Create(member).Error
 }
 
-func (g *GormStore) GetOutletMember(ctx context.Context, spaceID, userID uuid.UUID) (*model.OutletMember, error) {
+func (g *GormStore) GetSubscriptionMember(ctx context.Context, subMemberID uuid.UUID) (*model.SubscriptionMember, error) {
+	var member model.SubscriptionMember
+	if err := g.db.Where("id = ?", subMemberID.String()).Preload("Subscription").First(&member).Error; err != nil {
+		return nil, err
+	}
+
+	return &member, nil
+
+}
+
+func (g *GormStore) ListSubscriptionMembers(ctx context.Context, subID uuid.UUID) ([]*model.SubscriptionMember, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (g *GormStore) ListOutletMembers(ctx context.Context, spaceID uuid.UUID) ([]*uuid.UUID, error) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (g *GormStore) RemoveOutletMember(ctx context.Context, spaceID, userID uuid.UUID) error {
+func (g *GormStore) RemoveSubscriptionMember(ctx context.Context, subMemberID uuid.UUID) error {
 	//TODO implement me
 	panic("implement me")
 }
