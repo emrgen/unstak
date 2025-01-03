@@ -194,8 +194,6 @@ message CreateCollectionRequest {
   string name = 2;
   string description = 3;
   string thumbnail = 4;
-  string created_by_id = 5 [(validate.rules).string.uuid = true];
-  User created_by_user = 6;
   google.protobuf.Timestamp created_at = 10;
   google.protobuf.Timestamp updated_at = 11;
 }
@@ -213,9 +211,9 @@ message GetCollectionResponse {
 }
 
 message ListCollectionRequest {
-  string user_id = 1 [(validate.rules).string.uuid = true];
   int32 page = 2;
   int32 per_page = 3;
+  optional string owner_id = 4 [(validate.rules).string.uuid = true];
 }
 
 message ListCollectionResponse {

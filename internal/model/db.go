@@ -35,9 +35,13 @@ func Migrate(db *gorm.DB) error {
 		return err
 	}
 
-	//if err := db.AutoMigrate(&PostTag{}); err != nil {
-	//	return err
-	//}
+	if err := db.AutoMigrate(&Collection{}); err != nil {
+		return err
+	}
+
+	if err := db.AutoMigrate(&CollectionPost{}); err != nil {
+		return err
+	}
 
 	return nil
 }

@@ -6,4 +6,5 @@ type CollectionPost struct {
 	gorm.Model
 	CollectionID string `gorm:"not null"`
 	PostID       string `gorm:"not null"`
+	Post         *Post  `gorm:"foreignKey:PostID"`
 }

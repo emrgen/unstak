@@ -73,8 +73,8 @@ type CollectionStore interface {
 	GetCollection(ctx context.Context, id uuid.UUID) (*model.Collection, error)
 	// ListCollectionsByUserID retrieves a list of collections by user ID.
 	ListCollectionsByUserID(ctx context.Context, userID uuid.UUID) ([]*model.Collection, error)
-	// ListCollectionByOwnerID retrieves a list of collections by owner ID.
-	ListCollectionByOwnerID(ctx context.Context, ownerID uuid.UUID) ([]*model.Collection, error)
+	// ListCollectionsByOwnerID retrieves a list of collections by owner ID.
+	ListCollectionsByOwnerID(ctx context.Context, ownerID uuid.UUID) ([]*model.Collection, error)
 	// UpdateCollection updates a collection.
 	UpdateCollection(ctx context.Context, collection *model.Collection) error
 	// DeleteCollection deletes a collection by ID.

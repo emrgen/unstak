@@ -164,9 +164,9 @@ func (g *GormStore) GetCollection(ctx context.Context, id uuid.UUID) (*model.Col
 	return &collection, nil
 }
 
-func (g *GormStore) ListCollectionByOwnerID(ctx context.Context, userID uuid.UUID) ([]*model.Collection, error) {
+func (g *GormStore) ListCollectionsByOwnerID(ctx context.Context, userID uuid.UUID) ([]*model.Collection, error) {
 	var collections []*model.Collection
-	if err := g.db.Where("owner_id = ?", userID.String()).Find(&collections).Error; err != nil {
+	if err := g.db.Where("created_by_id = ?", userID.String()).Find(&collections).Error; err != nil {
 		return nil, err
 	}
 

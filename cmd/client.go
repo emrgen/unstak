@@ -36,3 +36,10 @@ func tagClient() (v1.TagServiceClient, func() error) {
 	client := v1.NewTagServiceClient(conn)
 	return client, closer
 }
+
+func collectionClient() (v1.CollectionServiceClient, func() error) {
+	conn, closer := getConnection()
+
+	client := v1.NewCollectionServiceClient(conn)
+	return client, closer
+}
