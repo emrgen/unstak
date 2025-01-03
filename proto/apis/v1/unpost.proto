@@ -1,0 +1,846 @@
+syntax = "proto3";
+
+package unpost.apis.v1;
+
+import "google/api/annotations.proto";
+import "google/protobuf/descriptor.proto";
+import "google/protobuf/timestamp.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
+import "validate/validate.proto";
+
+option go_package = "github.com/emrgen/unpost/proto/v1";
+
+message User {
+  string id = 1 [(validate.rules).string.uuid = true];
+  string email = 2;
+  string name = 3;
+  string avatar = 4;
+  google.protobuf.Timestamp created_at = 10;
+  google.protobuf.Timestamp updated_at = 11;
+}
+
+enum PostStatus {
+  DRAFT = 0;
+  PUBLISHED = 1;
+  ARCHIVED = 2;
+}
+
+message Post {
+  string id = 1 [(validate.rules).string.uuid = true];
+  string title = 2;
+  string content = 3;
+  string excerpt = 4;
+  string summary = 5;
+  string thumbnail = 6;
+  PostStatus status = 7;
+  repeated Tag tags = 8;
+  map<string, uint32> reaction = 9;
+  google.protobuf.Timestamp created_at = 10;
+  google.protobuf.Timestamp updated_at = 11;
+  string created_by_id = 12 [(validate.rules).string.uuid = true];
+  optional User created_by_user = 13;
+  int64 version = 14;
+}
+
+message CreatePostRequest {
+  string title = 2;
+  string content = 3;
+}
+
+message CreatePostResponse {
+  Post post = 1;
+}
+
+message GetPostRequest {
+  string id = 1;
+}
+
+message GetPostResponse {
+  Post post = 1;
+}
+
+message ListPostRequest {
+  string space_id = 1 [(validate.rules).string.uuid = true];
+  int32 page = 2;
+  int32 per_page = 3;
+  optional PostStatus status = 4;
+}
+
+message ListPostResponse {
+  repeated Post posts = 1;
+}
+
+message UpdatePostRequest {
+  string id = 1 [(validate.rules).string.uuid = true];
+  optional string title = 2;
+  optional string content = 3;
+  optional string thumbnail = 4;
+  optional string summary = 5;
+  optional string excerpt = 6;
+  optional string status = 7;
+  int64 version = 8;
+}
+
+message UpdatePostResponse {
+  Post post = 1;
+}
+
+message DeletePostRequest {
+  string id = 1 [(validate.rules).string.uuid = true];
+}
+
+message DeletePostResponse {
+  string id = 1 [(validate.rules).string.uuid = true];
+}
+
+message AddPostTagRequest {
+  string post_id = 1;
+  string tag_id = 2;
+}
+
+message AddPostTagResponse {
+  Post post = 1;
+}
+
+message RemovePostTagRequest {
+  string post_id = 1;
+  string tag_id = 2;
+}
+
+message RemovePostTagResponse {
+  Post post = 1;
+}
+
+message UpdatePostReactionRequest {
+  string post_id = 1;
+  string reaction_name = 2;
+  bool count = 3;
+}
+
+message UpdatePostReactionResponse {
+  Post post = 1;
+}
+
+message UpdatePostStatusRequest {
+  string post_id = 1;
+  PostStatus status = 2;
+}
+
+message UpdatePostStatusResponse {
+  Post post = 1;
+}
+
+service PostService {
+  rpc CreatePost(CreatePostRequest) returns (CreatePostResponse) {
+    option (google.api.http) = {
+      post: "/v1/posts"
+      body: "*"
+    };
+  }
+
+  rpc GetPost(GetPostRequest) returns (GetPostResponse) {
+    option (google.api.http) = {get: "/v1/posts/{id}"};
+  }
+
+  rpc ListPost(ListPostRequest) returns (ListPostResponse) {
+    option (google.api.http) = {get: "/v1/posts"};
+  }
+
+  rpc UpdatePost(UpdatePostRequest) returns (UpdatePostResponse) {
+    option (google.api.http) = {
+      put: "/v1/posts/{id}"
+      body: "*"
+    };
+  }
+
+  rpc DeletePost(DeletePostRequest) returns (DeletePostResponse) {
+    option (google.api.http) = {delete: "/v1/posts/{id}"};
+  }
+
+  rpc AddPostTag(AddPostTagRequest) returns (AddPostTagResponse) {
+    option (google.api.http) = {post: "/v1/posts/{post_id}/tags/{tag_id}"};
+  }
+
+  rpc RemovePostTag(RemovePostTagRequest) returns (RemovePostTagResponse) {
+    option (google.api.http) = {delete: "/v1/posts/{post_id}/tags/{tag_id}"};
+  }
+
+  rpc UpdatePostReaction(UpdatePostReactionRequest) returns (UpdatePostReactionResponse) {
+    option (google.api.http) = {
+      put: "/v1/posts/{post_id}/reaction"
+      body: "*"
+    };
+  }
+
+  rpc UpdatePostStatus(UpdatePostStatusRequest) returns (UpdatePostStatusResponse) {
+    option (google.api.http) = {
+      put: "/v1/posts/{post_id}/status"
+      body: "*"
+    };
+  }
+}
+
+message Collection {
+  string id = 1 [(validate.rules).string.uuid = true];
+  string name = 2;
+  repeated Post posts = 3;
+  repeated Tag tags = 7;
+
+  google.protobuf.Timestamp created_at = 10;
+  google.protobuf.Timestamp updated_at = 11;
+  string owner_id = 12 [(validate.rules).string.uuid = true];
+}
+
+message CreateCollectionRequest {
+  string name = 2;
+  string description = 3;
+  string thumbnail = 4;
+  string created_by_id = 5 [(validate.rules).string.uuid = true];
+  User created_by_user = 6;
+  google.protobuf.Timestamp created_at = 10;
+  google.protobuf.Timestamp updated_at = 11;
+}
+
+message CreateCollectionResponse {
+  Collection collection = 1;
+}
+
+message GetCollectionRequest {
+  string id = 1 [(validate.rules).string.uuid = true];
+}
+
+message GetCollectionResponse {
+  Collection collection = 1;
+}
+
+message ListCollectionRequest {
+  string user_id = 1 [(validate.rules).string.uuid = true];
+  int32 page = 2;
+  int32 per_page = 3;
+}
+
+message ListCollectionResponse {
+  repeated Collection collections = 1;
+}
+
+message UpdateCollectionRequest {
+  string id = 1 [(validate.rules).string.uuid = true];
+  string name = 2;
+}
+
+message UpdateCollectionResponse {
+  Collection collection = 1;
+}
+
+message DeleteCollectionRequest {
+  string id = 1;
+}
+
+message DeleteCollectionResponse {
+  string id = 1;
+}
+
+message AddCollectionTagRequest {
+  string collection_id = 1;
+  string tag_id = 2;
+}
+
+message AddCollectionTagResponse {
+  Collection collection = 1;
+}
+
+message RemoveCollectionTagRequest {
+  string collection_id = 1;
+  string tag_id = 2;
+}
+
+message RemoveCollectionTagResponse {
+  Collection collection = 1;
+}
+
+service CollectionService {
+  rpc CreateCollection(CreateCollectionRequest) returns (CreateCollectionResponse) {
+    option (google.api.http) = {
+      post: "/v1/collections"
+      body: "*"
+    };
+  }
+
+  rpc GetCollection(GetCollectionRequest) returns (GetCollectionResponse) {
+    option (google.api.http) = {get: "/v1/collections/{id}"};
+  }
+
+  rpc ListCollection(ListCollectionRequest) returns (ListCollectionResponse) {
+    option (google.api.http) = {get: "/v1/collections"};
+  }
+
+  rpc UpdateCollection(UpdateCollectionRequest) returns (UpdateCollectionResponse) {
+    option (google.api.http) = {
+      put: "/v1/collections/{id}"
+      body: "*"
+    };
+  }
+
+  rpc DeleteCollection(DeleteCollectionRequest) returns (DeleteCollectionResponse) {
+    option (google.api.http) = {delete: "/v1/collections/{id}"};
+  }
+
+
+  rpc AddCollectionTag(AddCollectionTagRequest) returns (AddCollectionTagResponse) {
+    option (google.api.http) = {post: "/v1/collections/{collection_id}/tags/{tag_id}"};
+  }
+
+  rpc RemoveCollectionTag(RemoveCollectionTagRequest) returns (RemoveCollectionTagResponse) {
+    option (google.api.http) = {delete: "/v1/collections/{collection_id}/tags/{tag_id}"};
+  }
+}
+
+message Outlet {
+  string id = 1 [(validate.rules).string.uuid = true];
+  string name = 2;
+  string description = 3;
+  string thumbnail = 4;
+  string owner_id = 5 [(validate.rules).string.uuid = true];
+  repeated OutletMember members = 6;
+  google.protobuf.Timestamp created_at = 10;
+  google.protobuf.Timestamp updated_at = 11;
+}
+
+message CreateOutletRequest {
+  string name = 2;
+  string description = 3;
+}
+
+message CreateOutletResponse {
+  Outlet outlet = 1;
+}
+
+message GetOutletRequest {
+  string id = 1 [(validate.rules).string.uuid = true];
+}
+
+message GetOutletResponse {
+  Outlet space = 1;
+}
+
+message ListOutletsRequest {
+  int32 page = 2;
+  int32 per_page = 3;
+}
+
+message ListOutletsResponse {
+  repeated Outlet outlets = 1;
+}
+
+message UpdateOutletRequest {
+  string id = 1 [(validate.rules).string.uuid = true];
+  string name = 2;
+  string description = 3;
+}
+
+message UpdateOutletResponse {
+  Outlet space = 1;
+}
+
+message DeleteOutletRequest {
+  string id = 1 [(validate.rules).string.uuid = true];
+}
+
+message DeleteOutletResponse {
+  string id = 1 [(validate.rules).string.uuid = true];
+}
+
+message AddOutletTagRequest {
+  string space_id = 1 [(validate.rules).string.uuid = true];
+  string tag_id = 2 [(validate.rules).string.uuid = true];
+}
+
+message AddOutletTagResponse {
+  Outlet space = 1;
+}
+
+message RemoveOutletTagRequest {
+  string space_id = 1 [(validate.rules).string.uuid = true];
+  string tag_id = 2 [(validate.rules).string.uuid = true];
+}
+
+message RemoveOutletTagResponse {
+  Outlet space = 1;
+}
+
+
+message TransferPostToOutletRequest {
+  string space_id = 1;
+  string post_id = 2;
+}
+
+message TransferPostToOutletResponse {
+  Outlet space = 1;
+}
+
+service OutletService {
+  rpc CreateOutlet(CreateOutletRequest) returns (CreateOutletResponse) {
+    option (google.api.http) = {
+      post: "/v1/spaces"
+      body: "*"
+    };
+  }
+
+  rpc GetOutlet(GetOutletRequest) returns (GetOutletResponse) {
+    option (google.api.http) = {get: "/v1/spaces/{id}"};
+  }
+
+  rpc ListOutlets(ListOutletsRequest) returns (ListOutletsResponse) {
+    option (google.api.http) = {get: "/v1/spaces"};
+  }
+
+  rpc UpdateOutlet(UpdateOutletRequest) returns (UpdateOutletResponse) {
+    option (google.api.http) = {
+      put: "/v1/spaces/{id}"
+      body: "*"
+    };
+  }
+
+  rpc DeleteOutlet(DeleteOutletRequest) returns (DeleteOutletResponse) {
+    option (google.api.http) = {delete: "/v1/spaces/{id}"};
+  }
+
+  rpc AddOutletTag(AddOutletTagRequest) returns (AddOutletTagResponse) {
+    option (google.api.http) = {post: "/v1/spaces/{space_id}/tags/{tag_id}"};
+  }
+
+  rpc RemoveOutletTag(RemoveOutletTagRequest) returns (RemoveOutletTagResponse) {
+    option (google.api.http) = {delete: "/v1/spaces/{space_id}/tags/{tag_id}"};
+  }
+
+
+  rpc TransferPostToOutlet(TransferPostToOutletRequest) returns (TransferPostToOutletResponse) {
+    option (google.api.http) = {post: "/v1/space/{space_id}/posts/{post_id}"};
+  }
+}
+
+enum Permission {
+  UNSPECIFIED = 0;
+  READER = 1;
+  WRITER = 2;
+  OWNER = 4;
+  ADMIN = 8;
+}
+
+message OutletMember {
+  string id = 1 [(validate.rules).string.uuid = true];
+  string space_id = 2;
+  string user_id = 3;
+  Permission permission = 4;
+  User user = 5;
+  google.protobuf.Timestamp created_at = 10;
+  google.protobuf.Timestamp updated_at = 11;
+}
+
+message CreateOutletMemberRequest {
+  string space_id = 1 [(validate.rules).string.uuid = true];
+  string user_id = 2 [(validate.rules).string.uuid = true];
+  string role = 3;
+}
+
+message CreateOutletMemberResponse {
+  OutletMember space_permission = 1;
+}
+
+message GetOutletMemberRequest {
+  string id = 1 [(validate.rules).string.uuid = true];
+}
+
+message GetOutletMemberResponse {
+  OutletMember space_permission = 1;
+}
+
+// ListOutletMemberRequest is a request message for listing space permissions.
+message ListOutletMemberRequest {
+  string space_id = 1 [(validate.rules).string.uuid = true];
+  int32 page = 2;
+  int32 per_page = 3;
+}
+
+message ListOutletMemberResponse {
+  repeated OutletMember space_permissions = 1;
+}
+
+message UpdateOutletMemberRequest {
+  string id = 1;
+  string role = 2;
+}
+
+message UpdateOutletMemberResponse {
+  OutletMember space_permission = 1;
+}
+
+message DeleteOutletMemberRequest {
+  string id = 1;
+}
+
+message DeleteOutletMemberResponse {
+  string id = 1;
+}
+
+service OutletMemberService {
+  rpc CreateOutletMember(CreateOutletMemberRequest) returns (CreateOutletMemberResponse) {
+    option (google.api.http) = {
+      post: "/v1/space_permissions"
+      body: "*"
+    };
+  }
+
+  rpc GetOutletMember(GetOutletMemberRequest) returns (GetOutletMemberResponse) {
+    option (google.api.http) = {get: "/v1/space_permissions/{id}"};
+  }
+
+  rpc ListOutletMember(ListOutletMemberRequest) returns (ListOutletMemberResponse) {
+    option (google.api.http) = {get: "/v1/space_permissions"};
+  }
+
+  rpc UpdateOutletMember(UpdateOutletMemberRequest) returns (UpdateOutletMemberResponse) {
+    option (google.api.http) = {
+      put: "/v1/space_permissions/{id}"
+      body: "*"
+    };
+  }
+
+  rpc DeleteOutletMember(DeleteOutletMemberRequest) returns (DeleteOutletMemberResponse) {
+    option (google.api.http) = {delete: "/v1/space_permissions/{id}"};
+  }
+}
+
+message UpdateFileURLRequest {
+  string id = 1 [(validate.rules).string.uuid = true];
+}
+
+message UpdateFileURLResponse {
+  string url = 1;
+}
+
+message DownloadFileURLRequest {
+  string id = 1 [(validate.rules).string.uuid = true];
+}
+
+message DownloadFileURLResponse {
+  string url = 1;
+}
+
+service FileService {
+  rpc UpdateFileURL(UpdateFileURLRequest) returns (UpdateFileURLResponse) {
+    option (google.api.http) = {
+      post: "/v1/files/{id}/url"
+      body: "*"
+    };
+  }
+
+  rpc DownloadFileURL(DownloadFileURLRequest) returns (DownloadFileURLResponse) {
+    option (google.api.http) = {get: "/v1/files/{id}/url"};
+  }
+}
+
+// Tags are application wide unique identifiers for categorizing content.
+message Tag {
+  string id = 1;
+  string name = 2;
+  google.protobuf.Timestamp created_at = 3;
+  google.protobuf.Timestamp updated_at = 4;
+}
+
+message CreateTagRequest {
+  string name = 1;
+}
+
+message CreateTagResponse {
+  Tag tag = 1;
+}
+
+message GetTagRequest {
+  string id = 1;
+}
+
+message GetTagResponse {
+  Tag tag = 1;
+}
+
+message ListTagRequest {
+  int32 page = 1;
+  int32 per_page = 2;
+}
+
+message ListTagResponse {
+  repeated Tag tags = 1;
+}
+
+message UpdateTagRequest {
+  string id = 1;
+  string name = 2;
+}
+
+message UpdateTagResponse {
+  Tag tag = 1;
+}
+
+message DeleteTagRequest {
+  string id = 1;
+}
+
+message DeleteTagResponse {
+  string id = 1;
+}
+
+service TagService {
+  rpc CreateTag(CreateTagRequest) returns (CreateTagResponse) {
+    option (google.api.http) = {
+      post: "/v1/tags"
+      body: "*"
+    };
+  }
+
+  rpc GetTag(GetTagRequest) returns (GetTagResponse) {
+    option (google.api.http) = {get: "/v1/tags/{id}"};
+  }
+
+  rpc ListTag(ListTagRequest) returns (ListTagResponse) {
+    option (google.api.http) = {get: "/v1/tags"};
+  }
+
+  rpc UpdateTag(UpdateTagRequest) returns (UpdateTagResponse) {
+    option (google.api.http) = {
+      put: "/v1/tags/{id}"
+      body: "*"
+    };
+  }
+
+  rpc DeleteTag(DeleteTagRequest) returns (DeleteTagResponse) {
+    option (google.api.http) = {delete: "/v1/tags/{id}"};
+  }
+}
+
+message Book {
+  string id = 1 [(validate.rules).string.uuid = true];
+  string title = 2;
+  string content = 3;
+  string description = 5;
+  string thumbnail = 6;
+  string content_pages = 7;
+  google.protobuf.Timestamp created_at = 10;
+  google.protobuf.Timestamp updated_at = 11;
+  string owner_id = 12 [(validate.rules).string.uuid = true];
+}
+
+message CreateBookRequest {
+  string title = 1;
+  string content = 2;
+  string description = 3;
+  string thumbnail = 4;
+}
+
+message CreateBookResponse {
+  Book book = 1;
+}
+
+message GetBookRequest {
+  string id = 1 [(validate.rules).string.uuid = true];
+}
+
+message GetBookResponse {
+  Book book = 1;
+}
+
+message ListBookRequest {
+  int32 page = 1;
+  int32 per_page = 2;
+}
+
+message ListBookResponse {
+  repeated Book books = 1;
+}
+
+message UpdateBookRequest {
+  string id = 1 [(validate.rules).string.uuid = true];
+  string title = 2;
+  string content = 3;
+  string description = 4;
+  string thumbnail = 5;
+}
+
+message UpdateBookResponse {
+  Book book = 1;
+}
+
+message DeleteBookRequest {
+  string id = 1 [(validate.rules).string.uuid = true];
+}
+
+message DeleteBookResponse {
+  string id = 1 [(validate.rules).string.uuid = true];
+}
+
+message AddBookTagRequest {
+  string book_id = 1 [(validate.rules).string.uuid = true];
+  string tag_id = 2 [(validate.rules).string.uuid = true];
+}
+
+message AddBookTagResponse {
+  Book book = 1;
+}
+
+message RemoveBookTagRequest {
+  string book_id = 1 [(validate.rules).string.uuid = true];
+  string tag_id = 2 [(validate.rules).string.uuid = true];
+}
+
+message RemoveBookTagResponse {
+  Book book = 1;
+}
+
+service BookService {
+  rpc CreateBook(CreateBookRequest) returns (CreateBookResponse) {
+    option (google.api.http) = {
+      post: "/v1/books"
+      body: "*"
+    };
+  }
+
+  rpc GetBook(GetBookRequest) returns (GetBookResponse) {
+    option (google.api.http) = {get: "/v1/books/{id}"};
+  }
+
+  rpc ListBook(ListBookRequest) returns (ListBookResponse) {
+    option (google.api.http) = {get: "/v1/books"};
+  }
+
+  rpc UpdateBook(UpdateBookRequest) returns (UpdateBookResponse) {
+    option (google.api.http) = {
+      put: "/v1/books/{id}"
+      body: "*"
+    };
+  }
+
+  rpc DeleteBook(DeleteBookRequest) returns (DeleteBookResponse) {
+    option (google.api.http) = {delete: "/v1/books/{id}"};
+  }
+
+  rpc AddBookTag(AddBookTagRequest) returns (AddBookTagResponse) {
+    option (google.api.http) = {post: "/v1/books/{book_id}/tags/{tag_id}"};
+  }
+
+  rpc RemoveBookTag(RemoveBookTagRequest) returns (RemoveBookTagResponse) {
+    option (google.api.http) = {delete: "/v1/books/{book_id}/tags/{tag_id}"};
+  }
+}
+
+message Page {
+  string book_id = 1 [(validate.rules).string.uuid = true];
+  string id = 2 [(validate.rules).string.uuid = true];
+  string title = 3;
+  string content = 4;
+  string thumbnail = 5;
+  string content_pages = 6;
+  google.protobuf.Timestamp created_at = 10;
+  google.protobuf.Timestamp updated_at = 11;
+}
+
+message CreatePageRequest {
+  string book_id = 1 [(validate.rules).string.uuid = true];
+  string title = 2;
+  string content = 3;
+  string thumbnail = 4;
+}
+
+message CreatePageResponse {
+  Page page = 1;
+}
+
+message GetPageRequest {
+  string id = 1 [(validate.rules).string.uuid = true];
+}
+
+message GetPageResponse {
+  Page page = 1;
+}
+
+message ListPageRequest {
+  string book_id = 1 [(validate.rules).string.uuid = true];
+  int32 page = 2;
+  int32 per_page = 3;
+}
+
+message ListPageResponse {
+  repeated Page pages = 1;
+}
+
+message UpdatePageRequest {
+  string id = 1 [(validate.rules).string.uuid = true];
+  string title = 2;
+  string content = 3;
+  string thumbnail = 4;
+}
+
+message UpdatePageResponse {
+  Page page = 1;
+}
+
+message DeletePageRequest {
+  string id = 1 [(validate.rules).string.uuid = true];
+}
+
+message DeletePageResponse {
+  string id = 1 [(validate.rules).string.uuid = true];
+}
+
+message AddPageTagRequest {
+  string page_id = 1 [(validate.rules).string.uuid = true];
+  string tag_id = 2 [(validate.rules).string.uuid = true];
+}
+
+message AddPageTagResponse {
+  Page page = 1;
+}
+
+message RemovePageTagRequest {
+  string page_id = 1 [(validate.rules).string.uuid = true];
+  string tag_id = 2 [(validate.rules).string.uuid = true];
+}
+
+message RemovePageTagResponse {
+  Page page = 1;
+}
+
+service PageService {
+  rpc CreatePage(CreatePageRequest) returns (CreatePageResponse) {
+    option (google.api.http) = {
+      post: "/v1/pages"
+      body: "*"
+    };
+  }
+
+  rpc GetPage(GetPageRequest) returns (GetPageResponse) {
+    option (google.api.http) = {get: "/v1/pages/{id}"};
+  }
+
+  rpc ListPage(ListPageRequest) returns (ListPageResponse) {
+    option (google.api.http) = {get: "/v1/pages"};
+  }
+
+  rpc UpdatePage(UpdatePageRequest) returns (UpdatePageResponse) {
+    option (google.api.http) = {
+      put: "/v1/pages/{id}"
+      body: "*"
+    };
+  }
+
+  rpc DeletePage(DeletePageRequest) returns (DeletePageResponse) {
+    option (google.api.http) = {delete: "/v1/pages/{id}"};
+  }
+
+  rpc AddPageTag(AddPageTagRequest) returns (AddPageTagResponse) {
+    option (google.api.http) = {post: "/v1/pages/{page_id}/tags/{tag_id}"};
+  }
+
+  rpc RemovePageTag(RemovePageTagRequest) returns (RemovePageTagResponse) {
+    option (google.api.http) = {delete: "/v1/pages/{page_id}/tags/{tag_id}"};
+  }
+}

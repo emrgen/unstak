@@ -1,0 +1,11 @@
+.env
+.env.example
+
+# Ignore node_modules
+clients
+
+.tmp
+.test
+coverage
+docs
+node_modules
