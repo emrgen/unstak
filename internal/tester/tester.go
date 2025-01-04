@@ -49,24 +49,14 @@ func RemoveDBFile() {
 }
 
 func CleanUp() {
-	DropDocuments()
-	DropGroups()
-	DropProjects()
+	DropPosts()
 	DropUsers()
 }
 
-func DropDocuments() {
-	db.Exec("DELETE FROM documents")
+func DropPosts() {
+	db.Exec("DELETE FROM posts")
 }
 
 func DropUsers() {
 	db.Exec("DELETE FROM users")
-}
-
-func DropProjects() {
-	db.Exec("DELETE FROM projects")
-}
-
-func DropGroups() {
-	db.Exec("DELETE FROM groups")
 }

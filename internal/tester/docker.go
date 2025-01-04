@@ -2,6 +2,7 @@ package tester
 
 import (
 	"github.com/emrgen/unpost/internal/model"
+	dockertest "github.com/ory/dockertest/v3"
 	"github.com/sirupsen/logrus"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"

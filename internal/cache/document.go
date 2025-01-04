@@ -1,28 +1,28 @@
 package cache
 
-import (
-	"context"
+import v1 "github.com/emrgen/document/apis/v1"
 
-	"github.com/emrgen/unpost/internal/model"
-)
+// DocumentCache is a cache for documents
+// It is used to store published documents in memory to avoid fetching them from the document service
+// When a document is published, it is stored in the cache and when a document is unpublished, it is removed from the cache
+// A document in a cache has a TTL to avoid storing it indefinitely
+type DocumentCache struct {
+	cache map[string]*v1.Document
+}
 
-type GetDocumentMode int
+// NewDocumentCache creates a new DocumentCache
+func NewDocumentCache() *DocumentCache {
+	return &DocumentCache{
+		cache: make(map[string]*v1.Document),
+	}
+}
 
-const (
-	GetDocumentModeView GetDocumentMode = iota
-	GetDocumentModeEdit
-)
+// GetDocument returns a document from the cache
+func (c *DocumentCache) GetDocument(key string) *v1.Document {
+	return c.cache[key]
+}
 
-// DocumentCache is a cache for documents.
-type DocumentCache interface {
-	// GetDocumentVersion gets the version of a unpost from the cache.
-	GetDocumentVersion(ctx context.Context, id uuid.UUID, view GetDocumentMode) (int64, error)
-	// GetDocument gets a unpost from the cache.
-	GetDocument(ctx context.Context, id uuid.UUID, view GetDocumentMode) (*model.Document, error)
-	// SetDocument sets a unpost in the cache.
-	SetDocument(ctx context.Context, id uuid.UUID, doc *model.Document) error
-	// UpdateDocument updates a unpost in the cache.
-	UpdateDocument(ctx context.Context, id uuid.UUID, doc *model.Document) error
-	// DeleteDocument deletes a unpost from the cache.
-	DeleteDocument(ctx context.Context, id uuid.UUID) error
+// SetDocument sets a document in the cache
+func (c *DocumentCache) SetDocument(key string, document *v1.Document) {
+	c.cache[key] = document
 }
