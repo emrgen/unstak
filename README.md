@@ -1,6 +1,6 @@
 # unpost
 
-A simple microservice to manage tinyposts.
+A simple microservice to manage posts.
 
 ## Design
 
