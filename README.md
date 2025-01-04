@@ -28,7 +28,7 @@ The user can create token for project which can be used to access the project re
 - [ ] Create collection
 - [ ] List collection
 - [ ] Delete collection
-- [ ] Create subscription
+- [ ] Create tier
 - [ ] List subscription
 - [ ] Delete subscription
 - [ ] Update subscription

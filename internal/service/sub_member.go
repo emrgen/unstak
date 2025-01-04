@@ -8,90 +8,90 @@ import (
 	"github.com/google/uuid"
 )
 
-func NewSubscriptionMemberService() v1.SubscriptionMemberServiceServer {
-	return &SubscriptionMemberService{}
+func NewTierMemberService() v1.TierMemberServiceServer {
+	return &TierMemberService{}
 
 }
 
-var _ v1.SubscriptionMemberServiceServer = (*SubscriptionMemberService)(nil)
+var _ v1.TierMemberServiceServer = (*TierMemberService)(nil)
 
-type SubscriptionMemberService struct {
+type TierMemberService struct {
 	store store.UnPostStore
-	v1.UnimplementedSubscriptionMemberServiceServer
+	v1.UnimplementedTierMemberServiceServer
 }
 
-func (s *SubscriptionMemberService) CreateSubscriptionMember(ctx context.Context, request *v1.CreateSubscriptionMemberRequest) (*v1.CreateSubscriptionMemberResponse, error) {
+func (s *TierMemberService) CreateTierMember(ctx context.Context, request *v1.CreateTierMemberRequest) (*v1.CreateTierMemberResponse, error) {
 	userID := uuid.MustParse(request.GetUserId())
-	subscriptionID := uuid.MustParse(request.GetSubscriptionId())
+	tierID := uuid.MustParse(request.GetTierId())
 
-	err := s.store.AddSubscriptionMember(ctx, &model.SubscriptionMember{
-		UserID:         userID.String(),
-		SubscriptionID: subscriptionID.String(),
+	err := s.store.AddTierMember(ctx, &model.TierMember{
+		UserID: userID.String(),
+		TierID: tierID.String(),
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	return &v1.CreateSubscriptionMemberResponse{}, nil
+	return &v1.CreateTierMemberResponse{}, nil
 }
 
-func (s *SubscriptionMemberService) GetSubscriptionMember(ctx context.Context, request *v1.GetSubscriptionMemberRequest) (*v1.GetSubscriptionMemberResponse, error) {
+func (s *TierMemberService) GetTierMember(ctx context.Context, request *v1.GetTierMemberRequest) (*v1.GetTierMemberResponse, error) {
 	subMemberID := uuid.MustParse(request.GetId())
 
-	subscriptionMember, err := s.store.GetSubscriptionMember(ctx, subMemberID)
+	tierMember, err := s.store.GetTierMember(ctx, subMemberID)
 	if err != nil {
 		return nil, err
 	}
 
-	return &v1.GetSubscriptionMemberResponse{
-		Member: &v1.SubscriptionMember{
-			Id:             subscriptionMember.ID,
-			UserId:         subscriptionMember.UserID,
-			SubscriptionId: subscriptionMember.SubscriptionID,
-			Subscription: &v1.Subscription{
-				Id:   subscriptionMember.Subscription.ID,
-				Name: subscriptionMember.Subscription.Name,
+	return &v1.GetTierMemberResponse{
+		Member: &v1.TierMember{
+			Id:     tierMember.ID,
+			UserId: tierMember.UserID,
+			TierId: tierMember.TierID,
+			Tier: &v1.Tier{
+				Id:   tierMember.Tier.ID,
+				Name: tierMember.Tier.Name,
 			},
 		},
 	}, nil
 }
 
-func (s *SubscriptionMemberService) ListSubscriptionMember(ctx context.Context, request *v1.ListSubscriptionMemberRequest) (*v1.ListSubscriptionMemberResponse, error) {
-	subID := uuid.MustParse(request.GetSubscriptionId())
+func (s *TierMemberService) ListTierMember(ctx context.Context, request *v1.ListTierMemberRequest) (*v1.ListTierMemberResponse, error) {
+	subID := uuid.MustParse(request.GetTierId())
 
-	subscriptionMembers, err := s.store.ListSubscriptionMembers(ctx, subID)
+	tierMembers, err := s.store.ListTierMembers(ctx, subID)
 	if err != nil {
 		return nil, err
 	}
 
-	members := make([]*v1.SubscriptionMember, 0, len(subscriptionMembers))
-	for _, member := range subscriptionMembers {
+	members := make([]*v1.TierMember, 0, len(tierMembers))
+	for _, member := range tierMembers {
 
-		members = append(members, &v1.SubscriptionMember{
-			Id:             member.ID,
-			UserId:         member.UserID,
-			SubscriptionId: member.SubscriptionID,
-			Subscription: &v1.Subscription{
-				Id:   member.Subscription.ID,
-				Name: member.Subscription.Name,
+		members = append(members, &v1.TierMember{
+			Id:     member.ID,
+			UserId: member.UserID,
+			TierId: member.TierID,
+			Tier: &v1.Tier{
+				Id:   member.Tier.ID,
+				Name: member.Tier.Name,
 			},
 		})
 	}
 
-	return &v1.ListSubscriptionMemberResponse{Members: members}, nil
+	return &v1.ListTierMemberResponse{Members: members}, nil
 }
 
-func (s *SubscriptionMemberService) UpdateSubscriptionMember(ctx context.Context, request *v1.UpdateSubscriptionMemberRequest) (*v1.UpdateSubscriptionMemberResponse, error) {
+func (s *TierMemberService) UpdateTierMember(ctx context.Context, request *v1.UpdateTierMemberRequest) (*v1.UpdateTierMemberResponse, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (s *SubscriptionMemberService) DeleteSubscriptionMember(ctx context.Context, request *v1.DeleteSubscriptionMemberRequest) (*v1.DeleteSubscriptionMemberResponse, error) {
+func (s *TierMemberService) DeleteTierMember(ctx context.Context, request *v1.DeleteTierMemberRequest) (*v1.DeleteTierMemberResponse, error) {
 	subID := uuid.MustParse(request.GetId())
 
-	if err := s.store.RemoveSubscriptionMember(ctx, subID); err != nil {
+	if err := s.store.RemoveTierMember(ctx, subID); err != nil {
 		return nil, err
 	}
 
-	return &v1.DeleteSubscriptionMemberResponse{}, nil
+	return &v1.DeleteTierMemberResponse{}, nil
 }

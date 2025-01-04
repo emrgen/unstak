@@ -179,20 +179,19 @@ func (p *PostService) ListPost(ctx context.Context, request *v1.ListPostRequest)
 			continue
 		}
 		postProto := &v1.Post{
-			Id:          post.ID,
-			CreatedById: post.CreatedByID,
-			Status:      postStatusToProto(post.Status),
-			Title:       doc.GetTitle(),
-			Summary:     doc.Summary,
-			Excerpt:     doc.Excerpt,
-			Thumbnail:   doc.Thumbnail,
-			Version:     doc.Version,
-			CreatedAt:   timestamppb.New(post.CreatedAt),
-			UpdatedAt:   timestamppb.New(post.UpdatedAt),
+			Id:        post.ID,
+			Status:    postStatusToProto(post.Status),
+			Title:     doc.GetTitle(),
+			Summary:   doc.Summary,
+			Excerpt:   doc.Excerpt,
+			Thumbnail: doc.Thumbnail,
+			Version:   doc.Version,
+			CreatedAt: timestamppb.New(post.CreatedAt),
+			UpdatedAt: timestamppb.New(post.UpdatedAt),
 		}
 		responsePosts = append(responsePosts, postProto)
 		if user, ok := users[post.CreatedByID]; ok {
-			postProto.CreatedByUser = &v1.User{
+			postProto.OriginalAuthor = &v1.User{
 				Id:    user.Id,
 				Name:  user.Username,
 				Email: user.Email,

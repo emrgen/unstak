@@ -22,7 +22,7 @@ func Execute() {
 
 func init() {
 	rootCmd.AddCommand(dbCmd)
-	rootCmd.AddCommand(subscriptionCmd)
+	rootCmd.AddCommand(tierCmd)
 	rootCmd.AddCommand(tagCmd)
 	rootCmd.AddCommand(collectionCmd)
 	rootCmd.AddCommand(postCmd)

@@ -17,7 +17,6 @@ func NewCourseService(cfg *tiny.ProjectConfig, store store.UnPostStore, docClien
 		store:     store,
 		docClient: docClient,
 	}
-
 }
 
 var _ v1.CourseServiceServer = new(CourseService)

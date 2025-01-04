@@ -70,8 +70,9 @@ func LoadConfig() *Config {
 	if DbType == "" {
 		panic("DB_TYPE is not set")
 	}
+
 	DbConnString := os.Getenv("DB_CONNECTION_STRING")
-	if DbConnString == "" {
+	if DbType != "sqlite" && DbConnString == "" {
 		panic("DB_CONNECTION_STRING is not set")
 	}
 

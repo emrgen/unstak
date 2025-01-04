@@ -114,6 +114,8 @@ func Start(grpcPort, httpPort string) error {
 	v1.RegisterTagServiceServer(grpcServer, service.NewTagService(tinyPostStore))
 	v1.RegisterPostServiceServer(grpcServer, service.NewPostService(projectConfig, tinyPostStore, authClient, docClient))
 	v1.RegisterCollectionServiceServer(grpcServer, service.NewCollectionService(tinyPostStore))
+	v1.RegisterCourseServiceServer(grpcServer, service.NewCourseService(projectConfig, tinyPostStore, docClient))
+	v1.RegisterPageServiceServer(grpcServer, service.NewPageService(projectConfig, tinyPostStore, docClient))
 
 	// Register the rest gateway
 	if err = v1.RegisterPostServiceHandlerFromEndpoint(context.TODO(), mux, endpoint, opts); err != nil {
@@ -123,6 +125,12 @@ func Start(grpcPort, httpPort string) error {
 		return err
 	}
 	if err = v1.RegisterTagServiceHandlerFromEndpoint(context.TODO(), mux, endpoint, opts); err != nil {
+		return err
+	}
+	if err = v1.RegisterCourseServiceHandlerFromEndpoint(context.TODO(), mux, endpoint, opts); err != nil {
+		return err
+	}
+	if err = v1.RegisterPageServiceHandlerFromEndpoint(context.TODO(), mux, endpoint, opts); err != nil {
 		return err
 	}
 

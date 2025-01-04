@@ -10,11 +10,20 @@ import "validate/validate.proto";
 
 option go_package = "github.com/emrgen/unpost/proto/v1";
 
+enum UserRole {
+  Contributor = 0; // Contributor can create but can't publish
+  Author = 1; // Author can create and manage post, tags
+  Editor = 2; // Editor can invite authors and contributors
+  Admin = 3; // Admin can manage all data
+  Owner = 4;
+}
+
 message User {
   string id = 1 [(validate.rules).string.uuid = true];
   string email = 2;
   string name = 3;
   string avatar = 4;
+  UserRole role = 5;
   google.protobuf.Timestamp created_at = 10;
   google.protobuf.Timestamp updated_at = 11;
 }
@@ -32,14 +41,16 @@ message Post {
   string excerpt = 4;
   string summary = 5;
   string thumbnail = 6;
-  PostStatus status = 7;
-  repeated Tag tags = 8;
+  string slug = 7;
+  string featured_image = 8;
   map<string, uint32> reaction = 9;
-  google.protobuf.Timestamp created_at = 10;
-  google.protobuf.Timestamp updated_at = 11;
-  string created_by_id = 12 [(validate.rules).string.uuid = true];
-  optional User created_by_user = 13;
-  int64 version = 14;
+  PostStatus status = 10;
+  repeated Tag tags = 11;
+  User original_author = 13;
+  repeated User authors = 14;
+  google.protobuf.Timestamp created_at = 20;
+  google.protobuf.Timestamp updated_at = 21;
+  int64 version = 22;
 }
 
 message CreatePostRequest {
@@ -53,6 +64,14 @@ message CreatePostResponse {
 
 message GetPostRequest {
   string id = 1;
+}
+
+message GetPostBySlagRequest {
+  string slag = 1;
+}
+
+message GetPostBySlagResponse {
+  Post post = 1;
 }
 
 message GetPostResponse {
@@ -141,6 +160,10 @@ service PostService {
     option (google.api.http) = {get: "/v1/posts/{id}"};
   }
 
+  rpc GetPostBySlag(GetPostBySlagRequest) returns (GetPostBySlagResponse) {
+    option (google.api.http) = {get: "/v1/posts/slag/{slag}"};
+  }
+
   rpc ListPost(ListPostRequest) returns (ListPostResponse) {
     option (google.api.http) = {get: "/v1/posts"};
   }
@@ -178,6 +201,8 @@ service PostService {
     };
   }
 }
+
+// Collection service
 
 message Collection {
   string id = 1 [(validate.rules).string.uuid = true];
@@ -618,182 +643,174 @@ service PageService {
 }
 
 // -------------------------
-// Subscription
+// Tier
 // -------------------------
 
-message Subscription {
+message Tier {
   string id = 1 [(validate.rules).string.uuid = true];
   string name = 2;
   string description = 3;
   string thumbnail = 4;
   string created_by_id = 5 [(validate.rules).string.uuid = true];
-  repeated SubscriptionMember members = 6;
+  repeated TierMember members = 6;
   google.protobuf.Timestamp created_at = 10;
   google.protobuf.Timestamp updated_at = 11;
 }
 
-message CreateSubscriptionRequest {
+message CreateTierRequest {
   string name = 2;
   string description = 3;
 }
 
-message CreateSubscriptionResponse {
-  Subscription subscription = 1;
+message CreateTierResponse {
+  Tier tier = 1;
 }
 
-message GetSubscriptionRequest {
+message GetTierRequest {
   string id = 1 [(validate.rules).string.uuid = true];
 }
 
-message GetSubscriptionResponse {
-  Subscription subscription = 1;
+message GetTierResponse {
+  Tier tier = 1;
 }
 
-message ListSubscriptionsRequest {
+message ListTiersRequest {
   int32 page = 2;
   int32 per_page = 3;
 }
 
-message ListSubscriptionsResponse {
-  repeated Subscription subscriptions = 1;
+message ListTiersResponse {
+  repeated Tier tiers = 1;
 }
 
-message UpdateSubscriptionRequest {
+message UpdateTierRequest {
   string id = 1 [(validate.rules).string.uuid = true];
   string name = 2;
   string description = 3;
 }
 
-message UpdateSubscriptionResponse {
-  Subscription subscription = 1;
+message UpdateTierResponse {
+  Tier tier = 1;
 }
 
-message DeleteSubscriptionRequest {
+message DeleteTierRequest {
   string id = 1 [(validate.rules).string.uuid = true];
 }
 
-message DeleteSubscriptionResponse {
+message DeleteTierResponse {
   string id = 1 [(validate.rules).string.uuid = true];
 }
 
-service SubscriptionService {
-  rpc CreateSubscription(CreateSubscriptionRequest) returns (CreateSubscriptionResponse) {
+service TierService {
+  rpc CreateTier(CreateTierRequest) returns (CreateTierResponse) {
     option (google.api.http) = {
-      post: "/v1/subscriptions"
+      post: "/v1/tiers"
       body: "*"
     };
   }
 
-  rpc GetSubscription(GetSubscriptionRequest) returns (GetSubscriptionResponse) {
-    option (google.api.http) = {get: "/v1/subscriptions/{id}"};
+  rpc GetTier(GetTierRequest) returns (GetTierResponse) {
+    option (google.api.http) = {get: "/v1/tiers/{id}"};
   }
 
-  rpc ListSubscriptions(ListSubscriptionsRequest) returns (ListSubscriptionsResponse) {
-    option (google.api.http) = {get: "/v1/subscriptions"};
+  rpc ListTiers(ListTiersRequest) returns (ListTiersResponse) {
+    option (google.api.http) = {get: "/v1/tiers"};
   }
 
-  rpc UpdateSubscription(UpdateSubscriptionRequest) returns (UpdateSubscriptionResponse) {
+  rpc UpdateTier(UpdateTierRequest) returns (UpdateTierResponse) {
     option (google.api.http) = {
-      put: "/v1/subscriptions/{id}"
+      put: "/v1/tiers/{id}"
       body: "*"
     };
   }
 
-  rpc DeleteSubscription(DeleteSubscriptionRequest) returns (DeleteSubscriptionResponse) {
-    option (google.api.http) = {delete: "/v1/subscriptions/{id}"};
+  rpc DeleteTier(DeleteTierRequest) returns (DeleteTierResponse) {
+    option (google.api.http) = {delete: "/v1/tiers/{id}"};
   }
 
 }
 
-enum Permission {
-  UNSPECIFIED = 0;
-  READER = 1;
-  WRITER = 2;
-  OWNER = 4;
-  ADMIN = 8;
-}
-
-message SubscriptionMember {
+message TierMember {
   string id = 1 [(validate.rules).string.uuid = true];
-  string subscription_id = 2;
+  string tier_id = 2;
   string user_id = 3;
-  Subscription subscription = 4;
+  Tier tier = 4;
   User user = 5;
   google.protobuf.Timestamp created_at = 10;
   google.protobuf.Timestamp updated_at = 11;
 }
 
-message CreateSubscriptionMemberRequest {
-  string subscription_id = 1 [(validate.rules).string.uuid = true];
+message CreateTierMemberRequest {
+  string tier_id = 1 [(validate.rules).string.uuid = true];
   string user_id = 2 [(validate.rules).string.uuid = true];
   string role = 3;
 }
 
-message CreateSubscriptionMemberResponse {
-  SubscriptionMember subscription_permission = 1;
+message CreateTierMemberResponse {
+  TierMember tier_permission = 1;
 }
 
-message GetSubscriptionMemberRequest {
+message GetTierMemberRequest {
   string id = 1 [(validate.rules).string.uuid = true];
 }
 
-message GetSubscriptionMemberResponse {
-  SubscriptionMember member = 1;
+message GetTierMemberResponse {
+  TierMember member = 1;
 }
 
-// ListSubscriptionMemberRequest is a request message for listing subscription permissions.
-message ListSubscriptionMemberRequest {
-  string subscription_id = 1 [(validate.rules).string.uuid = true];
+// ListTierMemberRequest is a request message for listing tier permissions.
+message ListTierMemberRequest {
+  string tier_id = 1 [(validate.rules).string.uuid = true];
   int32 page = 2;
   int32 per_page = 3;
 }
 
-message ListSubscriptionMemberResponse {
-  repeated SubscriptionMember members = 1;
+message ListTierMemberResponse {
+  repeated TierMember members = 1;
 }
 
-message UpdateSubscriptionMemberRequest {
+message UpdateTierMemberRequest {
   string id = 1;
   string role = 2;
 }
 
-message UpdateSubscriptionMemberResponse {
-  SubscriptionMember subscription_permission = 1;
+message UpdateTierMemberResponse {
+  TierMember tier_permission = 1;
 }
 
-message DeleteSubscriptionMemberRequest {
+message DeleteTierMemberRequest {
   string id = 1;
 }
 
-message DeleteSubscriptionMemberResponse {
+message DeleteTierMemberResponse {
   string id = 1;
 }
 
-service SubscriptionMemberService {
-  rpc CreateSubscriptionMember(CreateSubscriptionMemberRequest) returns (CreateSubscriptionMemberResponse) {
+service TierMemberService {
+  rpc CreateTierMember(CreateTierMemberRequest) returns (CreateTierMemberResponse) {
     option (google.api.http) = {
-      post: "/v1/subscription_permissions"
+      post: "/v1/tier_permissions"
       body: "*"
     };
   }
 
-  rpc GetSubscriptionMember(GetSubscriptionMemberRequest) returns (GetSubscriptionMemberResponse) {
-    option (google.api.http) = {get: "/v1/subscription_permissions/{id}"};
+  rpc GetTierMember(GetTierMemberRequest) returns (GetTierMemberResponse) {
+    option (google.api.http) = {get: "/v1/tier_permissions/{id}"};
   }
 
-  rpc ListSubscriptionMember(ListSubscriptionMemberRequest) returns (ListSubscriptionMemberResponse) {
-    option (google.api.http) = {get: "/v1/subscription_permissions"};
+  rpc ListTierMember(ListTierMemberRequest) returns (ListTierMemberResponse) {
+    option (google.api.http) = {get: "/v1/tier_permissions"};
   }
 
-  rpc UpdateSubscriptionMember(UpdateSubscriptionMemberRequest) returns (UpdateSubscriptionMemberResponse) {
+  rpc UpdateTierMember(UpdateTierMemberRequest) returns (UpdateTierMemberResponse) {
     option (google.api.http) = {
-      put: "/v1/subscription_permissions/{id}"
+      put: "/v1/tier_permissions/{id}"
       body: "*"
     };
   }
 
-  rpc DeleteSubscriptionMember(DeleteSubscriptionMemberRequest) returns (DeleteSubscriptionMemberResponse) {
-    option (google.api.http) = {delete: "/v1/subscription_permissions/{id}"};
+  rpc DeleteTierMember(DeleteTierMemberRequest) returns (DeleteTierMemberResponse) {
+    option (google.api.http) = {delete: "/v1/tier_permissions/{id}"};
   }
 }
 

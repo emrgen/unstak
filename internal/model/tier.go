@@ -1,0 +1,16 @@
+package model
+
+import (
+	"gorm.io/gorm"
+)
+
+type Tier struct {
+	gorm.Model
+	ID             string `gorm:"primaryKey;uuid"`
+	Name           string `gorm:"not null;uniqueIndex:idx_space_project"`
+	CreatedByID    string `gorm:"not null"`
+	MonthlyCost    float64
+	YearlyCost     float64
+	HalfYearlyCost float64
+	QuarterlyCost  float64
+}

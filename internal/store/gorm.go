@@ -88,7 +88,7 @@ func (g *GormStore) UpdatePageTags(ctx context.Context, pageID uuid.UUID, tags [
 }
 
 // -----------------------
-// SubscriptionStore
+// TierStore
 // -----------------------
 
 func (g *GormStore) CreatePost(ctx context.Context, doc *model.Post) error {
@@ -136,8 +136,8 @@ func (g *GormStore) ListPostByUserID(ctx context.Context, userID uuid.UUID) ([]*
 	return posts, nil
 }
 
-// ListPostsBySubscriptionID retrieves a list of tinyposts by space ID.
-func (g *GormStore) ListPostsBySubscriptionID(ctx context.Context, spaceID uuid.UUID) ([]*model.Post, error) {
+// ListPostsByTierID retrieves a list of tinyposts by space ID.
+func (g *GormStore) ListPostsByTierID(ctx context.Context, spaceID uuid.UUID) ([]*model.Post, error) {
 	var posts []*model.Post
 	if err := g.db.Where("space_id = ?", spaceID.String()).Find(&posts).Error; err != nil {
 		return nil, err
@@ -162,17 +162,16 @@ func (g *GormStore) UpdatePostReaction(ctx context.Context, userID, postID uuid.
 }
 
 func (g *GormStore) AddMember(ctx context.Context, spaceID, userID uuid.UUID, permission uint64) error {
-	member := &model.SubscriptionMember{
-		SubscriptionID: spaceID.String(),
-		UserID:         userID.String(),
-		Permission:     permission,
+	member := &model.TierMember{
+		TierID: spaceID.String(),
+		UserID: userID.String(),
 	}
 
 	return g.db.Create(member).Error
 }
 
-func (g *GormStore) GetMember(ctx context.Context, spaceID, userID uuid.UUID) (*model.SubscriptionMember, error) {
-	var member model.SubscriptionMember
+func (g *GormStore) GetMember(ctx context.Context, spaceID, userID uuid.UUID) (*model.TierMember, error) {
+	var member model.TierMember
 	if err := g.db.Where("space_id = ? AND user_id = ?", spaceID.String(), userID.String()).First(&member).Error; err != nil {
 		return nil, err
 	}
@@ -182,7 +181,7 @@ func (g *GormStore) GetMember(ctx context.Context, spaceID, userID uuid.UUID) (*
 }
 
 func (g *GormStore) ListMembers(ctx context.Context, spaceID uuid.UUID) ([]*uuid.UUID, error) {
-	var members []*model.SubscriptionMember
+	var members []*model.TierMember
 	if err := g.db.Where("space_id = ?", spaceID.String()).Find(&members).Error; err != nil {
 		return nil, err
 	}
@@ -200,14 +199,14 @@ func (g *GormStore) ListMembers(ctx context.Context, spaceID uuid.UUID) ([]*uuid
 
 }
 
-func (g *GormStore) UpdateMember(ctx context.Context, member *model.SubscriptionMember) error {
+func (g *GormStore) UpdateMember(ctx context.Context, member *model.TierMember) error {
 	return g.db.Save(member).Error
 }
 
 func (g *GormStore) RemoveMember(ctx context.Context, spaceID, userID uuid.UUID) error {
-	member := &model.SubscriptionMember{
-		SubscriptionID: spaceID.String(),
-		UserID:         userID.String(),
+	member := &model.TierMember{
+		TierID: spaceID.String(),
+		UserID: userID.String(),
 	}
 	return g.db.Delete(member).Error
 }
@@ -300,17 +299,17 @@ func (g *GormStore) DeleteTag(ctx context.Context, id uuid.UUID) error {
 	return g.db.Delete(&model.Tag{ID: id.String()}).Error
 }
 
-func (g *GormStore) UpdateSubscriptionMember(ctx context.Context, member *model.SubscriptionMember) error {
+func (g *GormStore) UpdateTierMember(ctx context.Context, member *model.TierMember) error {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (g *GormStore) CreateSubscription(ctx context.Context, space *model.Subscription) error {
+func (g *GormStore) CreateTier(ctx context.Context, space *model.Tier) error {
 	return g.db.Create(space).Error
 }
 
-func (g *GormStore) GetSubscription(ctx context.Context, id uuid.UUID) (*model.Subscription, error) {
-	var space model.Subscription
+func (g *GormStore) GetTier(ctx context.Context, id uuid.UUID) (*model.Tier, error) {
+	var space model.Tier
 	if err := g.db.Where("id = ?", id.String()).First(&space).Error; err != nil {
 		return nil, err
 	}
@@ -318,8 +317,8 @@ func (g *GormStore) GetSubscription(ctx context.Context, id uuid.UUID) (*model.S
 	return &space, nil
 }
 
-func (g *GormStore) ListSubscriptions(ctx context.Context, userID uuid.UUID) ([]*model.Subscription, error) {
-	var spaces []*model.Subscription
+func (g *GormStore) ListTiers(ctx context.Context, userID uuid.UUID) ([]*model.Tier, error) {
+	var spaces []*model.Tier
 	if err := g.db.Where("created_by_id = ?", userID.String()).Find(&spaces).Error; err != nil {
 		return nil, err
 	}
@@ -327,19 +326,19 @@ func (g *GormStore) ListSubscriptions(ctx context.Context, userID uuid.UUID) ([]
 	return spaces, nil
 }
 
-func (g *GormStore) UpdateSubscription(ctx context.Context, space *model.Subscription) error {
+func (g *GormStore) UpdateTier(ctx context.Context, space *model.Tier) error {
 	return g.db.Save(space).Error
 }
 
-func (g *GormStore) DeleteSubscription(ctx context.Context, id uuid.UUID) error {
-	post := &model.Subscription{
+func (g *GormStore) DeleteTier(ctx context.Context, id uuid.UUID) error {
+	post := &model.Tier{
 		ID: id.String(),
 	}
 	return g.db.Delete(post).Error
 }
 
-func (g *GormStore) GetDefaultSubscription(ctx context.Context, userID uuid.UUID) (*model.Subscription, error) {
-	var space model.Subscription
+func (g *GormStore) GetDefaultTier(ctx context.Context, userID uuid.UUID) (*model.Tier, error) {
+	var space model.Tier
 	if err := g.db.Where("created_by_id = ? AND user_default = true", userID.String()).First(&space).Error; err != nil {
 		return nil, err
 	}
@@ -347,13 +346,13 @@ func (g *GormStore) GetDefaultSubscription(ctx context.Context, userID uuid.UUID
 	return &space, nil
 }
 
-func (g *GormStore) AddSubscriptionMember(ctx context.Context, member *model.SubscriptionMember) error {
+func (g *GormStore) AddTierMember(ctx context.Context, member *model.TierMember) error {
 	return g.db.Create(member).Error
 }
 
-func (g *GormStore) GetSubscriptionMember(ctx context.Context, subMemberID uuid.UUID) (*model.SubscriptionMember, error) {
-	var member model.SubscriptionMember
-	if err := g.db.Where("id = ?", subMemberID.String()).Preload("Subscription").First(&member).Error; err != nil {
+func (g *GormStore) GetTierMember(ctx context.Context, subMemberID uuid.UUID) (*model.TierMember, error) {
+	var member model.TierMember
+	if err := g.db.Where("id = ?", subMemberID.String()).Preload("Tier").First(&member).Error; err != nil {
 		return nil, err
 	}
 
@@ -361,12 +360,12 @@ func (g *GormStore) GetSubscriptionMember(ctx context.Context, subMemberID uuid.
 
 }
 
-func (g *GormStore) ListSubscriptionMembers(ctx context.Context, subID uuid.UUID) ([]*model.SubscriptionMember, error) {
+func (g *GormStore) ListTierMembers(ctx context.Context, subID uuid.UUID) ([]*model.TierMember, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (g *GormStore) RemoveSubscriptionMember(ctx context.Context, subMemberID uuid.UUID) error {
+func (g *GormStore) RemoveTierMember(ctx context.Context, subMemberID uuid.UUID) error {
 	//TODO implement me
 	panic("implement me")
 }

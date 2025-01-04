@@ -16,9 +16,9 @@ func getConnection() (*grpc.ClientConn, func() error) {
 	return conn, conn.Close
 }
 
-func subscriptionClient() (v1.SubscriptionServiceClient, func() error) {
+func tierClient() (v1.TierServiceClient, func() error) {
 	conn, closer := getConnection()
-	client := v1.NewSubscriptionServiceClient(conn)
+	client := v1.NewTierServiceClient(conn)
 
 	return client, closer
 }

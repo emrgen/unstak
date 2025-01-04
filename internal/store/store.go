@@ -8,9 +8,9 @@ import (
 )
 
 type UnPostStore interface {
-	SubscriptionStore
+	TierStore
 	PostStore
-	SubscriptionMemberStore
+	TierMemberStore
 	CollectionStore
 	CourseStore
 	PageStore
@@ -19,32 +19,32 @@ type UnPostStore interface {
 	Migrate() error
 }
 
-type SubscriptionStore interface {
-	// CreateSubscription creates a new space.
-	CreateSubscription(ctx context.Context, space *model.Subscription) error
-	// GetSubscription retrieves a space by ID.
-	GetSubscription(ctx context.Context, spaceID uuid.UUID) (*model.Subscription, error)
-	// ListSubscriptions retrieves a list of spaces by user ID.
-	ListSubscriptions(ctx context.Context, userID uuid.UUID) ([]*model.Subscription, error)
-	// UpdateSubscription updates a space.
-	UpdateSubscription(ctx context.Context, space *model.Subscription) error
-	// DeleteSubscription deletes a space by ID.
-	DeleteSubscription(ctx context.Context, spaceID uuid.UUID) error
-	// GetDefaultSubscription retrieves the default space of a user.
-	GetDefaultSubscription(ctx context.Context, userID uuid.UUID) (*model.Subscription, error)
+type TierStore interface {
+	// CreateTier creates a new space.
+	CreateTier(ctx context.Context, space *model.Tier) error
+	// GetTier retrieves a space by ID.
+	GetTier(ctx context.Context, spaceID uuid.UUID) (*model.Tier, error)
+	// ListTiers retrieves a list of spaces by user ID.
+	ListTiers(ctx context.Context, userID uuid.UUID) ([]*model.Tier, error)
+	// UpdateTier updates a space.
+	UpdateTier(ctx context.Context, space *model.Tier) error
+	// DeleteTier deletes a space by ID.
+	DeleteTier(ctx context.Context, spaceID uuid.UUID) error
+	// GetDefaultTier retrieves the default space of a user.
+	GetDefaultTier(ctx context.Context, userID uuid.UUID) (*model.Tier, error)
 }
 
-type SubscriptionMemberStore interface {
-	// AddSubscriptionMember creates a new member.
-	AddSubscriptionMember(ctx context.Context, member *model.SubscriptionMember) error
-	// GetSubscriptionMember retrieves a member by ID.
-	GetSubscriptionMember(ctx context.Context, subMemberID uuid.UUID) (*model.SubscriptionMember, error)
-	// ListSubscriptionMembers retrieves a list of members by space ID.
-	ListSubscriptionMembers(ctx context.Context, subID uuid.UUID) ([]*model.SubscriptionMember, error)
-	// UpdateSubscriptionMember updates a member.
-	UpdateSubscriptionMember(ctx context.Context, member *model.SubscriptionMember) error
-	// RemoveSubscriptionMember deletes a member by ID.
-	RemoveSubscriptionMember(ctx context.Context, subMemberID uuid.UUID) error
+type TierMemberStore interface {
+	// AddTierMember creates a new member.
+	AddTierMember(ctx context.Context, member *model.TierMember) error
+	// GetTierMember retrieves a member by ID.
+	GetTierMember(ctx context.Context, subMemberID uuid.UUID) (*model.TierMember, error)
+	// ListTierMembers retrieves a list of members by space ID.
+	ListTierMembers(ctx context.Context, subID uuid.UUID) ([]*model.TierMember, error)
+	// UpdateTierMember updates a member.
+	UpdateTierMember(ctx context.Context, member *model.TierMember) error
+	// RemoveTierMember deletes a member by ID.
+	RemoveTierMember(ctx context.Context, subMemberID uuid.UUID) error
 }
 
 type PostStore interface {
@@ -56,8 +56,8 @@ type PostStore interface {
 	ListPostByOwnerID(ctx context.Context, userID uuid.UUID, status *model.PostStatus) ([]*model.Post, error)
 	// ListPostByUserID retrieves a list of tinyposts by user ID.
 	ListPostByUserID(ctx context.Context, userID uuid.UUID) ([]*model.Post, error)
-	// ListPostsBySubscriptionID retrieves a list of tinyposts by space ID.
-	ListPostsBySubscriptionID(ctx context.Context, spaceID uuid.UUID) ([]*model.Post, error)
+	// ListPostsByTierID retrieves a list of tinyposts by space ID.
+	ListPostsByTierID(ctx context.Context, spaceID uuid.UUID) ([]*model.Post, error)
 	// UpdatePost updates a post.
 	UpdatePost(ctx context.Context, doc *model.Post) error
 	// DeletePost deletes a post by ID.
