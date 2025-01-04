@@ -148,6 +148,7 @@ message UpdatePostStatusResponse {
 }
 
 service PostService {
+  // CreatePost
   rpc CreatePost(CreatePostRequest) returns (CreatePostResponse) {
     option (google.api.http) = {
       post: "/v1/posts"
@@ -155,18 +156,22 @@ service PostService {
     };
   }
 
+  // GetPost
   rpc GetPost(GetPostRequest) returns (GetPostResponse) {
     option (google.api.http) = {get: "/v1/posts/{id}"};
   }
 
+  // GetPostBySlag
   rpc GetPostBySlag(GetPostBySlagRequest) returns (GetPostBySlagResponse) {
     option (google.api.http) = {get: "/v1/posts/slag/{slag}"};
   }
 
+  // ListPost
   rpc ListPost(ListPostRequest) returns (ListPostResponse) {
     option (google.api.http) = {get: "/v1/posts"};
   }
 
+  // UpdatePost
   rpc UpdatePost(UpdatePostRequest) returns (UpdatePostResponse) {
     option (google.api.http) = {
       put: "/v1/posts/{id}"
@@ -174,18 +179,22 @@ service PostService {
     };
   }
 
+  // DeletePost
   rpc DeletePost(DeletePostRequest) returns (DeletePostResponse) {
     option (google.api.http) = {delete: "/v1/posts/{id}"};
   }
 
+  // AddPostTag
   rpc AddPostTag(AddPostTagRequest) returns (AddPostTagResponse) {
     option (google.api.http) = {post: "/v1/posts/{post_id}/tags/{tag_id}"};
   }
 
+  // RemovePostTag
   rpc RemovePostTag(RemovePostTagRequest) returns (RemovePostTagResponse) {
     option (google.api.http) = {delete: "/v1/posts/{post_id}/tags/{tag_id}"};
   }
 
+  // UpdatePostReaction
   rpc UpdatePostReaction(UpdatePostReactionRequest) returns (UpdatePostReactionResponse) {
     option (google.api.http) = {
       put: "/v1/posts/{post_id}/reaction"
@@ -193,6 +202,7 @@ service PostService {
     };
   }
 
+  // UpdatePostStatus
   rpc UpdatePostStatus(UpdatePostStatusRequest) returns (UpdatePostStatusResponse) {
     option (google.api.http) = {
       put: "/v1/posts/{post_id}/status"
@@ -813,3 +823,19 @@ service TierMemberService {
   }
 }
 
+message SendNewsletterSubscriptionRequest {
+  string email = 1;
+}
+
+message SendNewsletterSubscriptionResponse {
+  string message = 1;
+}
+
+service NewsLetterService {
+  rpc SendNewsLetter(SendNewsletterSubscriptionRequest) returns (SendNewsletterSubscriptionResponse) {
+    option (google.api.http) = {
+      post: "/v1/newsletters"
+      body: "*"
+    };
+  }
+}

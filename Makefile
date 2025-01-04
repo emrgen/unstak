@@ -75,7 +75,7 @@ generate-client: proto
 
 	# cd ./clients/firstime-gen-client/ts && yarn
 
-generate-docs:
+generate-docs: protoc
 	@echo "Generating openapi doc version $(SERVER_VERSION)"
 	@npx @redocly/cli build-docs ./apis/v1/unpost.swagger.json --output ./docs/v1/index.html
 
