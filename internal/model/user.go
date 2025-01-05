@@ -2,8 +2,6 @@ package model
 
 import "gorm.io/gorm"
 
-type UserRole string
-
 const (
 	UserRoleViewer      = "viewer"
 	UserRoleContributor = "contributor"
@@ -14,7 +12,6 @@ const (
 
 type User struct {
 	gorm.Model
-	ID         string   `gorm:"uuid;primaryKey;"`
 	AuthbaseID string   `gorm:"not null"`
-	Role       UserRole `gorm:"not null"`
+	Role       UserRole `gorm:"not null;default:'viewer'"` // first user to sign up is the owner
 }

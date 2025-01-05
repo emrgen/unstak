@@ -1,0 +1,5 @@
+staff:
+    email: abc@gmail.com
+    username: abc
+    password: abc
+    role: owner

@@ -3,6 +3,14 @@ package model
 import "gorm.io/gorm"
 
 func Migrate(db *gorm.DB) error {
+	if err := db.AutoMigrate(&Space{}); err != nil {
+		return err
+	}
+
+	if err := db.AutoMigrate(&SpaceMember{}); err != nil {
+		return err
+	}
+
 	if err := db.AutoMigrate(&Post{}); err != nil {
 		return err
 	}

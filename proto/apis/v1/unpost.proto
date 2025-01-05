@@ -27,6 +27,119 @@ message User {
   google.protobuf.Timestamp updated_at = 11;
 }
 
+message CreateOwnerRequest {
+  string email = 1;
+  string username = 2;
+  string password = 3;
+}
+
+message CreateOwnerResponse {
+  User user = 1;
+}
+
+message CheckOwnerSetupRequest {}
+
+message CheckOwnerSetupResponse {
+  bool is_setup = 1;
+}
+
+service AdminService {
+  rpc CreateOwner(CreateOwnerRequest) returns (CreateOwnerResponse) {
+    option (google.api.http) = {
+      post: "/v1/admin/owners"
+      body: "*"
+    };
+  }
+
+  rpc CheckOwnerSetup(CheckOwnerSetupRequest) returns (CheckOwnerSetupResponse) {
+    option (google.api.http) = {get: "/v1/admin/owners/setup"};
+  }
+}
+
+message Space {
+  string id = 1 [(validate.rules).string.uuid = true];
+  string name = 2;
+  string description = 3;
+  string thumbnail = 4;
+  string created_by_id = 5 [(validate.rules).string.uuid = true];
+  google.protobuf.Timestamp created_at = 10;
+  google.protobuf.Timestamp updated_at = 11;
+}
+
+message CreateSpaceRequest {
+  string name = 1;
+  string description = 2;
+  string thumbnail = 3;
+}
+
+message CreateSpaceResponse {
+  Space space = 1;
+}
+
+message GetSpaceRequest {
+  string id = 1 [(validate.rules).string.uuid = true];
+}
+
+message GetSpaceResponse {
+  Space space = 1;
+}
+
+message ListSpaceRequest {
+  int32 page = 2;
+  int32 per_page = 3;
+}
+
+message ListSpaceResponse {
+  repeated Space spaces = 1;
+}
+
+message UpdateSpaceRequest {
+  string id = 1 [(validate.rules).string.uuid = true];
+  string name = 2;
+  string description = 3;
+  string thumbnail = 4;
+}
+
+message UpdateSpaceResponse {
+  Space space = 1;
+}
+
+message DeleteSpaceRequest {
+  string id = 1 [(validate.rules).string.uuid = true];
+}
+
+message DeleteSpaceResponse {
+  string id = 1 [(validate.rules).string.uuid = true];
+}
+
+service SpaceService {
+  rpc CreateSpace(CreateSpaceRequest) returns (CreateSpaceResponse) {
+    option (google.api.http) = {
+      post: "/v1/spaces"
+      body: "*"
+    };
+  }
+
+  rpc GetSpace(GetSpaceRequest) returns (GetSpaceResponse) {
+    option (google.api.http) = {get: "/v1/spaces/{id}"};
+  }
+
+  rpc ListSpace(ListSpaceRequest) returns (ListSpaceResponse) {
+    option (google.api.http) = {get: "/v1/spaces"};
+  }
+
+  rpc UpdateSpace(UpdateSpaceRequest) returns (UpdateSpaceResponse) {
+    option (google.api.http) = {
+      put: "/v1/spaces/{id}"
+      body: "*"
+    };
+  }
+
+  rpc DeleteSpace(DeleteSpaceRequest) returns (DeleteSpaceResponse) {
+    option (google.api.http) = {delete: "/v1/spaces/{id}"};
+  }
+}
+
 enum PostStatus {
   DRAFT = 0;
   PUBLISHED = 1;
@@ -50,9 +163,11 @@ message Post {
   google.protobuf.Timestamp created_at = 20;
   google.protobuf.Timestamp updated_at = 21;
   int64 version = 22;
+  string space_id = 23 [(validate.rules).string.uuid = true];
 }
 
 message CreatePostRequest {
+  string space_id = 1 [(validate.rules).string.uuid = true];
   string title = 2;
   string content = 3;
 }
@@ -357,14 +472,16 @@ service FileService {
 
 // Tags are application wide unique identifiers for categorizing content.
 message Tag {
-  string id = 1;
-  string name = 2;
-  google.protobuf.Timestamp created_at = 3;
-  google.protobuf.Timestamp updated_at = 4;
+  string space_id = 1 [(validate.rules).string.uuid = true];
+  string id = 2;
+  string name = 3;
+  google.protobuf.Timestamp created_at = 4;
+  google.protobuf.Timestamp updated_at = 5;
 }
 
 message CreateTagRequest {
-  string name = 1;
+  string space_id = 1 [(validate.rules).string.uuid = true];
+  string name = 2;
 }
 
 message CreateTagResponse {
@@ -442,6 +559,7 @@ message Course {
   string created_by_id = 12 [(validate.rules).string.uuid = true];
   int64 version = 13;
   repeated Tag tags = 14;
+  string space_id = 15 [(validate.rules).string.uuid = true];
 }
 
 message CreateCourseRequest {
@@ -664,6 +782,7 @@ message Tier {
   repeated TierMember members = 6;
   google.protobuf.Timestamp created_at = 10;
   google.protobuf.Timestamp updated_at = 11;
+  string space_id = 15 [(validate.rules).string.uuid = true];
 }
 
 message CreateTierRequest {
@@ -769,9 +888,10 @@ message GetTierMemberResponse {
 
 // ListTierMemberRequest is a request message for listing tier permissions.
 message ListTierMemberRequest {
-  string tier_id = 1 [(validate.rules).string.uuid = true];
-  int32 page = 2;
-  int32 per_page = 3;
+  optional string tier_id = 1 [(validate.rules).string.uuid = true];
+  optional string space_id = 2 [(validate.rules).string.uuid = true];
+  int32 page = 3;
+  int32 per_page = 4;
 }
 
 message ListTierMemberResponse {

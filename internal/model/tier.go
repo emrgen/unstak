@@ -7,6 +7,7 @@ import (
 type Tier struct {
 	gorm.Model
 	ID             string `gorm:"primaryKey;uuid"`
+	SpaceID        string `gorm:"not null"`
 	Name           string `gorm:"not null;uniqueIndex:idx_space_project"`
 	CreatedByID    string `gorm:"not null"`
 	MonthlyCost    float64

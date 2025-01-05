@@ -10,6 +10,7 @@ type Page struct {
 	ID          string  `gorm:"primaryKey;uuid"`
 	DocumentID  string  `gorm:"not null"`
 	CourseID    string  `gorm:"not null"`
+	SpaceID     string  `gorm:"uuid;not null"`
 	CreatedByID string  `gorm:"not null"`
 	Course      *Course `gorm:"foreignKey:CourseID;references:ID"`
 	Status      PostStatus
