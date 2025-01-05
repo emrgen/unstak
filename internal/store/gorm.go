@@ -92,8 +92,7 @@ func (g *GormStore) DeleteSpace(ctx context.Context, spaceID uuid.UUID) error {
 }
 
 func (g *GormStore) AddSpaceMember(ctx context.Context, member *model.SpaceMember) error {
-	//TODO implement me
-	panic("implement me")
+	return g.db.Create(member).Error
 }
 
 func (g *GormStore) GetSpaceMember(ctx context.Context, subMemberID uuid.UUID) (*model.SpaceMember, error) {

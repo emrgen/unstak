@@ -2,8 +2,11 @@ package service
 
 import (
 	"context"
+	authx "github.com/emrgen/authbase/x"
 	v1 "github.com/emrgen/unpost/apis/v1"
+	"github.com/emrgen/unpost/internal/model"
 	"github.com/emrgen/unpost/internal/store"
+	"github.com/google/uuid"
 )
 
 // NewSpaceService creates a new space service
@@ -19,8 +22,45 @@ type SpaceService struct {
 }
 
 func (s *SpaceService) CreateSpace(ctx context.Context, request *v1.CreateSpaceRequest) (*v1.CreateSpaceResponse, error) {
-	//TODO implement me
-	panic("implement me")
+	userID, err := authx.GetAuthbaseUserID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	space := &model.Space{
+		ID:      uuid.New().String(),
+		Name:    request.GetName(),
+		OwnerID: userID.String(),
+	}
+
+	member := &model.SpaceMember{
+		ID:      uuid.New().String(),
+		SpaceID: space.ID,
+		UserID:  userID.String(),
+		Role:    model.UserRoleAdmin,
+	}
+
+	err = s.store.Transaction(ctx, func(ctx context.Context, tx store.UnPostStore) error {
+		if err := tx.CreateSpace(ctx, space); err != nil {
+			return err
+		}
+
+		if err := tx.AddSpaceMember(ctx, member); err != nil {
+			return err
+		}
+
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &v1.CreateSpaceResponse{
+		Space: &v1.Space{
+			Id:   space.ID,
+			Name: space.Name,
+		},
+	}, nil
 }
 
 func (s *SpaceService) GetSpace(ctx context.Context, request *v1.GetSpaceRequest) (*v1.GetSpaceResponse, error) {

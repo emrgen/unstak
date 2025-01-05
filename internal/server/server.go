@@ -144,7 +144,8 @@ func Start(grpcPort, httpPort string) error {
 			ID:                uuid.New().String(),
 			OwnerID:           userID,
 			AuthbaseProjectID: projectID,
-			Name:              "master",
+			Name:              "unpost",
+			Master:            true,
 		})
 		if err != nil {
 			return err

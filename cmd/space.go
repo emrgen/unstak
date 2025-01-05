@@ -1,0 +1,92 @@
+package cmd
+
+import (
+	v1 "github.com/emrgen/unpost/apis/v1"
+	"github.com/olekukonko/tablewriter"
+	"github.com/sirupsen/logrus"
+	"github.com/spf13/cobra"
+	"os"
+)
+
+var spaceCommand = &cobra.Command{
+	Use:   "space",
+	Short: "space commands",
+}
+
+func init() {
+	spaceCommand.AddCommand(createSpaceCommand())
+	spaceCommand.AddCommand(getSpaceCommand())
+	spaceCommand.AddCommand(listSpaceCommand())
+	spaceCommand.AddCommand(deleteSpaceCommand())
+}
+
+func createSpaceCommand() *cobra.Command {
+	var spaceName string
+
+	command := &cobra.Command{
+		Use:   "create",
+		Short: "create a space",
+		Run: func(cmd *cobra.Command, args []string) {
+			if spaceName == "" {
+				logrus.Errorf("missing required flag: --name")
+				return
+			}
+
+			client, close := spaceClient()
+			defer close()
+
+			res, err := client.CreateSpace(tokenContext(), &v1.CreateSpaceRequest{
+				Name: spaceName,
+			})
+			if err != nil {
+				logrus.Errorf("error creating space: %v", err)
+				return
+			}
+
+			table := tablewriter.NewWriter(os.Stdout)
+			table.SetHeader([]string{"ID", "Name"})
+			table.Append([]string{res.Space.Id, res.Space.Name})
+			table.Render()
+		},
+	}
+
+	command.Flags().StringVarP(&spaceName, "name", "n", "", "space name")
+
+	return command
+}
+
+func getSpaceCommand() *cobra.Command {
+	command := &cobra.Command{
+		Use:   "get",
+		Short: "get a space",
+		Run: func(cmd *cobra.Command, args []string) {
+
+		},
+	}
+
+	return command
+}
+
+func listSpaceCommand() *cobra.Command {
+	command := &cobra.Command{
+		Use:   "list",
+		Short: "list spaces",
+		Run: func(cmd *cobra.Command, args []string) {
+
+		},
+	}
+
+	return command
+}
+
+func deleteSpaceCommand() *cobra.Command {
+	command := &cobra.Command{
+		Use:   "delete",
+		Short: "delete a space",
+		Run: func(cmd *cobra.Command, args []string) {
+
+		},
+	}
+
+	return command
+}

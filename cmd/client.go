@@ -43,3 +43,10 @@ func collectionClient() (v1.CollectionServiceClient, func() error) {
 	client := v1.NewCollectionServiceClient(conn)
 	return client, closer
 }
+
+func spaceClient() (v1.SpaceServiceClient, func() error) {
+	conn, closer := getConnection()
+
+	client := v1.NewSpaceServiceClient(conn)
+	return client, closer
+}
