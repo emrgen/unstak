@@ -133,22 +133,36 @@ func Start(grpcPort, httpPort string) error {
 	// create master space and the owner user
 	// create owner user
 	err = unpostStore.CreateUser(context.TODO(), &model.User{
-		ID:   userID,
-		Role: model.UserRoleOwner,
+		ID: userID,
 	})
 	if err != nil {
 		return err
 	}
 
-	err = unpostStore.CreateSpace(context.TODO(), &model.Space{
+	space := &model.Space{
 		ID:                uuid.New().String(),
 		OwnerID:           userID,
 		AuthbaseProjectID: projectID,
 		Name:              "unpost",
 		Master:            true,
-	})
+	}
+
+	// create master space
+	err = unpostStore.CreateSpace(context.TODO(), space)
 	if err != nil && !strings.Contains(err.Error(), "UNIQUE constraint failed: spaces.name") {
 		return err
+	}
+
+	if err == nil {
+		// create master space member
+		err = unpostStore.AddSpaceMember(context.TODO(), &model.SpaceMember{
+			SpaceID: space.ID,
+			UserID:  userID,
+			Role:    model.SpaceRoleOwner,
+		})
+		if err != nil && !strings.Contains(err.Error(), "UNIQUE constraint failed: space_members.space_id") {
+			return err
+		}
 	}
 
 	// Register the grpc server

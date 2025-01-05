@@ -18,6 +18,10 @@ func init() {
 	spaceCommand.AddCommand(getSpaceCommand())
 	spaceCommand.AddCommand(listSpaceCommand())
 	spaceCommand.AddCommand(deleteSpaceCommand())
+	spaceCommand.AddCommand(addSpaceMemberCommand())
+	spaceCommand.AddCommand(removeSpaceMemberCommand())
+	spaceCommand.AddCommand(listSpaceMembersCommand())
+	spaceCommand.AddCommand(updateSpaceMemberCommand())
 }
 
 func createSpaceCommand() *cobra.Command {
@@ -83,6 +87,54 @@ func deleteSpaceCommand() *cobra.Command {
 	command := &cobra.Command{
 		Use:   "delete",
 		Short: "delete a space",
+		Run: func(cmd *cobra.Command, args []string) {
+
+		},
+	}
+
+	return command
+}
+
+func addSpaceMemberCommand() *cobra.Command {
+	command := &cobra.Command{
+		Use:   "add-member",
+		Short: "add a member to a space",
+		Run: func(cmd *cobra.Command, args []string) {
+
+		},
+	}
+
+	return command
+}
+
+func removeSpaceMemberCommand() *cobra.Command {
+	command := &cobra.Command{
+		Use:   "remove-member",
+		Short: "remove a member from a space",
+		Run: func(cmd *cobra.Command, args []string) {
+
+		},
+	}
+
+	return command
+}
+
+func listSpaceMembersCommand() *cobra.Command {
+	command := &cobra.Command{
+		Use:   "list-members",
+		Short: "list members of a space",
+		Run: func(cmd *cobra.Command, args []string) {
+
+		},
+	}
+
+	return command
+}
+
+func updateSpaceMemberCommand() *cobra.Command {
+	command := &cobra.Command{
+		Use:   "update-member",
+		Short: "update a member of a space",
 		Run: func(cmd *cobra.Command, args []string) {
 
 		},

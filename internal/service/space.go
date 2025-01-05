@@ -34,10 +34,9 @@ func (s *SpaceService) CreateSpace(ctx context.Context, request *v1.CreateSpaceR
 	}
 
 	member := &model.SpaceMember{
-		ID:      uuid.New().String(),
 		SpaceID: space.ID,
 		UserID:  userID.String(),
-		Role:    model.UserRoleAdmin,
+		Role:    model.UserRoleOwner,
 	}
 
 	err = s.store.Transaction(ctx, func(ctx context.Context, tx store.UnPostStore) error {
