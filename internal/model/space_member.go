@@ -2,8 +2,6 @@ package model
 
 import "gorm.io/gorm"
 
-type UserRole string
-
 type SpaceMember struct {
 	gorm.Model
 	ID      string `gorm:"uuid;primaryKey"`

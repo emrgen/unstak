@@ -5,6 +5,7 @@ import (
 	"github.com/emrgen/unpost/internal/model"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 // NewGormStore creates a new GormStore.
@@ -20,6 +21,99 @@ var (
 
 type GormStore struct {
 	db *gorm.DB
+}
+
+func (g *GormStore) CreateUser(ctx context.Context, user *model.User) error {
+	return g.db.Clauses(clause.OnConflict{
+		Columns:   []clause.Column{{Name: "id"}},
+		DoNothing: true,
+	}).Create(user).Error
+}
+
+func (g *GormStore) GetUser(ctx context.Context, id uuid.UUID) (*model.User, error) {
+	var user model.User
+	if err := g.db.Where("id = ?", id.String()).First(&user).Error; err != nil {
+		return nil, err
+	}
+
+	return &user, nil
+}
+
+func (g *GormStore) CreatePlatformTag(ctx context.Context, tag *model.PlatformTag) error {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (g *GormStore) GetPlatformTag(ctx context.Context, id uuid.UUID) (*model.PlatformTag, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (g *GormStore) ListPlatformTags(ctx context.Context, pageNumber, pageSize uint64) ([]*model.PlatformTag, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (g *GormStore) UpdatePlatformTag(ctx context.Context, tag *model.PlatformTag) error {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (g *GormStore) DeletePlatformTag(ctx context.Context, id uuid.UUID) error {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (g *GormStore) CreateSpace(ctx context.Context, space *model.Space) error {
+	return g.db.Clauses(clause.OnConflict{
+		Columns:   []clause.Column{{Name: "name"}},
+		DoNothing: true,
+	}).Create(space).Error
+}
+
+func (g *GormStore) GetSpace(ctx context.Context, spaceID uuid.UUID) (*model.Space, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (g *GormStore) ListSpaces(ctx context.Context, userID uuid.UUID) ([]*model.Space, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (g *GormStore) UpdateSpace(ctx context.Context, space *model.Space) error {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (g *GormStore) DeleteSpace(ctx context.Context, spaceID uuid.UUID) error {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (g *GormStore) AddSpaceMember(ctx context.Context, member *model.SpaceMember) error {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (g *GormStore) GetSpaceMember(ctx context.Context, subMemberID uuid.UUID) (*model.SpaceMember, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (g *GormStore) ListSpaceMembers(ctx context.Context, subID uuid.UUID) ([]*model.SpaceMember, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (g *GormStore) UpdateSpaceMember(ctx context.Context, member *model.SpaceMember) error {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (g *GormStore) RemoveSpaceMember(ctx context.Context, subMemberID uuid.UUID) error {
+	//TODO implement me
+	panic("implement me")
 }
 
 func (g *GormStore) CreateCourse(ctx context.Context, course *model.Course) error {
@@ -91,8 +185,8 @@ func (g *GormStore) UpdatePageTags(ctx context.Context, pageID uuid.UUID, tags [
 // TierStore
 // -----------------------
 
-func (g *GormStore) CreatePost(ctx context.Context, doc *model.Post) error {
-	return g.db.Create(doc).Error
+func (g *GormStore) CreatePost(ctx context.Context, post *model.Post) error {
+	return g.db.Create(post).Error
 }
 
 func (g *GormStore) GetPost(ctx context.Context, id uuid.UUID) (*model.Post, error) {

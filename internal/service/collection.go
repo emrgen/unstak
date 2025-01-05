@@ -2,7 +2,7 @@ package service
 
 import (
 	"context"
-	gox "github.com/emrgen/gopack/x"
+	authx "github.com/emrgen/authbase/x"
 	v1 "github.com/emrgen/unpost/apis/v1"
 	"github.com/emrgen/unpost/internal/model"
 	"github.com/emrgen/unpost/internal/store"
@@ -62,7 +62,7 @@ func (c *CollectionService) GetCollection(ctx context.Context, request *v1.GetCo
 
 // ListCollection lists collections
 func (c *CollectionService) ListCollection(ctx context.Context, request *v1.ListCollectionRequest) (*v1.ListCollectionResponse, error) {
-	userID, err := gox.GetUserID(ctx)
+	userID, err := authx.GetAuthbaseUserID(ctx)
 	if err != nil {
 		return nil, err
 	}

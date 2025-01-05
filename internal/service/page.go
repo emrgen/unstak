@@ -2,8 +2,8 @@ package service
 
 import (
 	"context"
+	authx "github.com/emrgen/authbase/x"
 	docv1 "github.com/emrgen/document/apis/v1"
-	gox "github.com/emrgen/gopack/x"
 	"github.com/emrgen/tinys/tiny"
 	v1 "github.com/emrgen/unpost/apis/v1"
 	"github.com/emrgen/unpost/internal/model"
@@ -31,7 +31,7 @@ type PageService struct {
 }
 
 func (p *PageService) CreatePage(ctx context.Context, request *v1.CreatePageRequest) (*v1.CreatePageResponse, error) {
-	userID, err := gox.GetUserID(ctx)
+	userID, err := authx.GetAuthbaseUserID(ctx)
 	if err != nil {
 		return nil, err
 	}

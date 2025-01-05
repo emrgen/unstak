@@ -12,5 +12,5 @@ type Course struct {
 	Reaction     string         `gorm:"not null"` // Reaction aggregates the reactions of all users who reacted to the post
 	Tags         []*Tag         `gorm:"many2many:course_tags;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 	PlatformTags []*PlatformTag `gorm:"many2many:course_platform_tags;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
-	Authors      []*User        `gorm:"many2many:post_authors;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+	Authors      []*User        `gorm:"many2many:course_authors;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 }

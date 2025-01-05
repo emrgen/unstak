@@ -1,5 +1,8 @@
+space:
+    name: unpost
+
 staff:
     email: abc@gmail.com
     username: abc
     password: abc
-    role: owner
+    role: admin

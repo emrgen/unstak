@@ -12,9 +12,12 @@ import (
 	"github.com/emrgen/tinys/tiny"
 	v1 "github.com/emrgen/unpost/apis/v1"
 	"github.com/emrgen/unpost/internal/config"
+	"github.com/emrgen/unpost/internal/model"
 	"github.com/emrgen/unpost/internal/service"
 	"github.com/emrgen/unpost/internal/store"
 	"github.com/gobuffalo/packr"
+	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
 	grpcmiddleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpcvalidator "github.com/grpc-ecosystem/go-grpc-middleware/validator"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
@@ -104,18 +107,63 @@ func Start(grpcPort, httpPort string) error {
 	}
 	endpoint := "localhost" + grpcPort
 
-	tinyPostStore := store.NewGormStore(rdb)
-	err = tinyPostStore.Migrate()
+	unpostStore := store.NewGormStore(rdb)
+	err = unpostStore.Migrate()
+	if err != nil {
+		return err
+	}
+
+	// get authbase project id
+	jwtToken, _, err := jwt.NewParser().ParseUnverified(projectConfig.TinyAPIKey, jwt.MapClaims{})
+	if err != nil {
+		panic(err)
+	}
+	claim := jwtToken.Claims.(jwt.MapClaims)
+	projectID := claim["project_id"].(string)
+	userID := claim["user_id"].(string)
+
+	_, err = tokenClient.VerifyToken(context.TODO(), &gopackv1.VerifyTokenRequest{
+		Token: projectConfig.TinyAPIKey,
+	})
+	if err != nil {
+		return err
+	}
+
+	// create master space and the owner user
+	err = unpostStore.Transaction(context.TODO(), func(ctx context.Context, tx store.UnPostStore) error {
+		// create owner user
+		err = tx.CreateUser(ctx, &model.User{
+			ID:   userID,
+			Role: model.UserRoleOwner,
+		})
+		if err != nil {
+			return err
+		}
+
+		err = tx.CreateSpace(ctx, &model.Space{
+			ID:                uuid.New().String(),
+			OwnerID:           userID,
+			AuthbaseProjectID: projectID,
+			Name:              "master",
+		})
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
 	if err != nil {
 		return err
 	}
 
 	// Register the grpc server
-	v1.RegisterTagServiceServer(grpcServer, service.NewTagService(tinyPostStore))
-	v1.RegisterPostServiceServer(grpcServer, service.NewPostService(projectConfig, tinyPostStore, authClient, docClient))
-	v1.RegisterCollectionServiceServer(grpcServer, service.NewCollectionService(tinyPostStore))
-	v1.RegisterCourseServiceServer(grpcServer, service.NewCourseService(projectConfig, tinyPostStore, docClient))
-	v1.RegisterPageServiceServer(grpcServer, service.NewPageService(projectConfig, tinyPostStore, docClient))
+	v1.RegisterTagServiceServer(grpcServer, service.NewTagService(unpostStore))
+	v1.RegisterPostServiceServer(grpcServer, service.NewPostService(projectConfig, unpostStore, authClient, docClient))
+	v1.RegisterCollectionServiceServer(grpcServer, service.NewCollectionService(unpostStore))
+	v1.RegisterCourseServiceServer(grpcServer, service.NewCourseService(projectConfig, unpostStore, docClient))
+	v1.RegisterPageServiceServer(grpcServer, service.NewPageService(projectConfig, unpostStore, docClient))
+	v1.RegisterSpaceServiceServer(grpcServer, service.NewSpaceService(unpostStore))
+	v1.RegisterSpaceMemberServiceServer(grpcServer, service.NewSpaceMemberService(unpostStore))
 
 	// Register the rest gateway
 	if err = v1.RegisterPostServiceHandlerFromEndpoint(context.TODO(), mux, endpoint, opts); err != nil {
@@ -131,6 +179,12 @@ func Start(grpcPort, httpPort string) error {
 		return err
 	}
 	if err = v1.RegisterPageServiceHandlerFromEndpoint(context.TODO(), mux, endpoint, opts); err != nil {
+		return err
+	}
+	if err = v1.RegisterSpaceServiceHandlerFromEndpoint(context.TODO(), mux, endpoint, opts); err != nil {
+		return err
+	}
+	if err = v1.RegisterSpaceMemberServiceHandlerFromEndpoint(context.TODO(), mux, endpoint, opts); err != nil {
 		return err
 	}
 

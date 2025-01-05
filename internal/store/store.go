@@ -8,6 +8,7 @@ import (
 )
 
 type UnPostStore interface {
+	UserStore
 	TierStore
 	PostStore
 	TierMemberStore
@@ -15,8 +16,18 @@ type UnPostStore interface {
 	CourseStore
 	PageStore
 	TagStore
+	PlatformTagStore
+	SpaceStore
+	SpaceMemberStore
 	Transaction(ctx context.Context, f func(ctx context.Context, store UnPostStore) error) error
 	Migrate() error
+}
+
+type UserStore interface {
+	// CreateUser creates a new user.
+	CreateUser(ctx context.Context, user *model.User) error
+	//	 GetUser retrieves a user by ID.
+	GetUser(ctx context.Context, userID uuid.UUID) (*model.User, error)
 }
 
 type TierStore interface {
@@ -126,4 +137,43 @@ type TagStore interface {
 	UpdateTag(ctx context.Context, tag *model.Tag) error
 	// DeleteTag deletes a tag by ID.
 	DeleteTag(ctx context.Context, id uuid.UUID) error
+}
+
+type PlatformTagStore interface {
+	// CreatePlatformTag creates a new platform tag.
+	CreatePlatformTag(ctx context.Context, tag *model.PlatformTag) error
+	// GetPlatformTag retrieves a platform tag by ID.
+	GetPlatformTag(ctx context.Context, id uuid.UUID) (*model.PlatformTag, error)
+	// ListPlatformTags retrieves a list of platform tags by space ID.
+	ListPlatformTags(ctx context.Context, pageNumber, pageSize uint64) ([]*model.PlatformTag, error)
+	// UpdatePlatformTag updates a platform tag.
+	UpdatePlatformTag(ctx context.Context, tag *model.PlatformTag) error
+	// DeletePlatformTag deletes a platform tag by ID.
+	DeletePlatformTag(ctx context.Context, id uuid.UUID) error
+}
+
+type SpaceStore interface {
+	// CreateSpace creates a new space.
+	CreateSpace(ctx context.Context, space *model.Space) error
+	// GetSpace retrieves a space by ID.
+	GetSpace(ctx context.Context, spaceID uuid.UUID) (*model.Space, error)
+	// ListSpaces retrieves a list of spaces by user ID.
+	ListSpaces(ctx context.Context, userID uuid.UUID) ([]*model.Space, error)
+	// UpdateSpace updates a space.
+	UpdateSpace(ctx context.Context, space *model.Space) error
+	// DeleteSpace deletes a space by ID.
+	DeleteSpace(ctx context.Context, spaceID uuid.UUID) error
+}
+
+type SpaceMemberStore interface {
+	// AddSpaceMember creates a new member.
+	AddSpaceMember(ctx context.Context, member *model.SpaceMember) error
+	// GetSpaceMember retrieves a member by ID.
+	GetSpaceMember(ctx context.Context, subMemberID uuid.UUID) (*model.SpaceMember, error)
+	// ListSpaceMembers retrieves a list of members by space ID.
+	ListSpaceMembers(ctx context.Context, subID uuid.UUID) ([]*model.SpaceMember, error)
+	// UpdateSpaceMember updates a member.
+	UpdateSpaceMember(ctx context.Context, member *model.SpaceMember) error
+	// RemoveSpaceMember deletes a member by ID.
+	RemoveSpaceMember(ctx context.Context, subMemberID uuid.UUID) error
 }

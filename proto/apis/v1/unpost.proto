@@ -140,6 +140,88 @@ service SpaceService {
   }
 }
 
+message SpaceMember {
+  string id = 1 [(validate.rules).string.uuid = true];
+  string space_id = 2 [(validate.rules).string.uuid = true];
+  string user_id = 3 [(validate.rules).string.uuid = true];
+  UserRole role = 4;
+  google.protobuf.Timestamp created_at = 10;
+  google.protobuf.Timestamp updated_at = 11;
+}
+
+message AddSpaceMemberRequest {
+  string space_id = 1 [(validate.rules).string.uuid = true];
+  string user_id = 2 [(validate.rules).string.uuid = true];
+  UserRole role = 3;
+}
+
+message AddSpaceMemberResponse {
+  SpaceMember space_member = 1;
+}
+
+message GetSpaceMemberRequest {
+  string id = 1 [(validate.rules).string.uuid = true];
+}
+
+message GetSpaceMemberResponse {
+  SpaceMember space_member = 1;
+}
+
+message ListSpaceMemberRequest {
+  string space_id = 1 [(validate.rules).string.uuid = true];
+  int32 page = 2;
+  int32 per_page = 3;
+}
+
+message ListSpaceMemberResponse {
+  repeated SpaceMember space_members = 1;
+}
+
+message UpdateSpaceMemberRequest {
+  string id = 1 [(validate.rules).string.uuid = true];
+  UserRole role = 2;
+}
+
+message UpdateSpaceMemberResponse {
+  SpaceMember space_member = 1;
+}
+
+message DeleteSpaceMemberRequest {
+  string id = 1 [(validate.rules).string.uuid = true];
+}
+
+message DeleteSpaceMemberResponse {
+  string id = 1 [(validate.rules).string.uuid = true];
+}
+
+service SpaceMemberService {
+  rpc AddSpaceMember(AddSpaceMemberRequest) returns (AddSpaceMemberResponse) {
+    option (google.api.http) = {
+      post: "/v1/space_members"
+      body: "*"
+    };
+  }
+
+  rpc GetSpaceMember(GetSpaceMemberRequest) returns (GetSpaceMemberResponse) {
+    option (google.api.http) = {get: "/v1/space_members/{id}"};
+  }
+
+  rpc ListSpaceMember(ListSpaceMemberRequest) returns (ListSpaceMemberResponse) {
+    option (google.api.http) = {get: "/v1/space_members"};
+  }
+
+  rpc UpdateSpaceMember(UpdateSpaceMemberRequest) returns (UpdateSpaceMemberResponse) {
+    option (google.api.http) = {
+      put: "/v1/space_members/{id}"
+      body: "*"
+    };
+  }
+
+  rpc DeleteSpaceMember(DeleteSpaceMemberRequest) returns (DeleteSpaceMemberResponse) {
+    option (google.api.http) = {delete: "/v1/space_members/{id}"};
+  }
+}
+
 enum PostStatus {
   DRAFT = 0;
   PUBLISHED = 1;

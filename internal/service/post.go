@@ -4,8 +4,8 @@ import (
 	"context"
 	mapset "github.com/deckarep/golang-set/v2"
 	authv1 "github.com/emrgen/authbase/apis/v1"
+	authx "github.com/emrgen/authbase/x"
 	docv1 "github.com/emrgen/document/apis/v1"
-	gox "github.com/emrgen/gopack/x"
 	tiny "github.com/emrgen/tinys/tiny"
 	v1 "github.com/emrgen/unpost/apis/v1"
 	"github.com/emrgen/unpost/internal/model"
@@ -38,10 +38,12 @@ type PostService struct {
 
 func (p *PostService) CreatePost(ctx context.Context, request *v1.CreatePostRequest) (*v1.CreatePostResponse, error) {
 	var err error
-	userID, err := gox.GetUserID(ctx)
+	userID, err := authx.GetAuthbaseUserID(ctx)
 	if err != nil {
 		return nil, err
 	}
+
+	logrus.Infof("creating post %s", request.GetTitle())
 
 	doc, err := p.docClient.CreateDocument(p.cfg.IntoContext(), &docv1.CreateDocumentRequest{
 		ProjectId: p.cfg.TinyProjectID,
@@ -52,10 +54,16 @@ func (p *PostService) CreatePost(ctx context.Context, request *v1.CreatePostRequ
 		return nil, err
 	}
 
+	user, err := p.store.GetUser(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+
 	post := &model.Post{
 		ID:          uuid.New().String(),
 		CreatedByID: userID.String(),
 		DocumentID:  doc.GetDocument().GetId(),
+		Authors:     []*model.User{user},
 	}
 
 	// get user default space-id if no space-id is provided
@@ -122,7 +130,7 @@ func (p *PostService) GetPost(ctx context.Context, request *v1.GetPostRequest) (
 
 // ListPost retrieves a list of posts within a space
 func (p *PostService) ListPost(ctx context.Context, request *v1.ListPostRequest) (*v1.ListPostResponse, error) {
-	userID, err := gox.GetUserID(ctx)
+	userID, err := authx.GetAuthbaseUserID(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -337,7 +345,7 @@ func (p *PostService) RemovePostTag(ctx context.Context, request *v1.RemovePostT
 // UpdatePostReaction updates the reaction of a post
 // A cron job will be responsible for updating the post's aggregated reaction counts
 func (p *PostService) UpdatePostReaction(ctx context.Context, request *v1.UpdatePostReactionRequest) (*v1.UpdatePostReactionResponse, error) {
-	userID, err := gox.GetUserID(ctx)
+	userID, err := authx.GetAuthbaseUserID(ctx)
 	postID := uuid.MustParse(request.GetPostId())
 	if err != nil {
 		return nil, err
