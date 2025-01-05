@@ -65,10 +65,7 @@ func (g *GormStore) DeletePlatformTag(ctx context.Context, id uuid.UUID) error {
 }
 
 func (g *GormStore) CreateSpace(ctx context.Context, space *model.Space) error {
-	return g.db.Clauses(clause.OnConflict{
-		Columns:   []clause.Column{{Name: "name"}},
-		DoNothing: true,
-	}).Create(space).Error
+	return g.db.Create(space).Error
 }
 
 func (g *GormStore) GetSpace(ctx context.Context, spaceID uuid.UUID) (*model.Space, error) {

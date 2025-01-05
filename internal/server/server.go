@@ -32,6 +32,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"sync"
 	"time"
 )
@@ -130,30 +131,23 @@ func Start(grpcPort, httpPort string) error {
 	}
 
 	// create master space and the owner user
-	err = unpostStore.Transaction(context.TODO(), func(ctx context.Context, tx store.UnPostStore) error {
-		// create owner user
-		err = tx.CreateUser(ctx, &model.User{
-			ID:   userID,
-			Role: model.UserRoleOwner,
-		})
-		if err != nil {
-			return err
-		}
-
-		err = tx.CreateSpace(ctx, &model.Space{
-			ID:                uuid.New().String(),
-			OwnerID:           userID,
-			AuthbaseProjectID: projectID,
-			Name:              "unpost",
-			Master:            true,
-		})
-		if err != nil {
-			return err
-		}
-
-		return nil
+	// create owner user
+	err = unpostStore.CreateUser(context.TODO(), &model.User{
+		ID:   userID,
+		Role: model.UserRoleOwner,
 	})
 	if err != nil {
+		return err
+	}
+
+	err = unpostStore.CreateSpace(context.TODO(), &model.Space{
+		ID:                uuid.New().String(),
+		OwnerID:           userID,
+		AuthbaseProjectID: projectID,
+		Name:              "unpost",
+		Master:            true,
+	})
+	if err != nil && !strings.Contains(err.Error(), "UNIQUE constraint failed: spaces.name") {
 		return err
 	}
 

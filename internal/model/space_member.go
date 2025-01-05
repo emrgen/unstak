@@ -8,4 +8,6 @@ type SpaceMember struct {
 	UserID  string `gorm:"uuid;not null"`
 	SpaceID string `gorm:"uuid;not null"`
 	Role    UserRole
+	Space   *Space
+	User    *User
 }
