@@ -579,8 +579,9 @@ message GetTagResponse {
 }
 
 message ListTagRequest {
-  int32 page = 1;
-  int32 per_page = 2;
+  string space_id = 1 [(validate.rules).string.uuid = true];
+  int32 page = 2;
+  int32 per_page = 3;
 }
 
 message ListTagResponse {

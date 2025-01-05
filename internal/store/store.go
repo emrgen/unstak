@@ -132,7 +132,7 @@ type TagStore interface {
 	// GetTag retrieves a tag by ID.
 	GetTag(ctx context.Context, id uuid.UUID) (*model.Tag, error)
 	// ListTags retrieves a list of tags by space ID.
-	ListTags(ctx context.Context, pageNumber, pageSize uint64) ([]*model.Tag, error)
+	ListTags(ctx context.Context, spaceID uuid.UUID, pageNumber, pageSize uint64) ([]*model.Tag, error)
 	// UpdateTag updates a tag.
 	UpdateTag(ctx context.Context, tag *model.Tag) error
 	// DeleteTag deletes a tag by ID.

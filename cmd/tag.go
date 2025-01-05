@@ -19,10 +19,17 @@ func init() {
 
 func tagCreate() *cobra.Command {
 	var tagName string
+	var spaceID string
+
 	command := &cobra.Command{
 		Use:   "create",
 		Short: "Create a tag",
 		Run: func(cmd *cobra.Command, args []string) {
+			if spaceID == "" {
+				cmd.Println("space id is required")
+				return
+			}
+
 			if tagName == "" {
 				cmd.Println("tag name is required")
 				return
@@ -32,7 +39,8 @@ func tagCreate() *cobra.Command {
 			defer close()
 
 			res, err := client.CreateTag(tokenContext(), &v1.CreateTagRequest{
-				Name: tagName,
+				SpaceId: spaceID,
+				Name:    tagName,
 			})
 			if err != nil {
 				cmd.Println(err)
@@ -46,20 +54,30 @@ func tagCreate() *cobra.Command {
 		},
 	}
 
+	command.Flags().StringVarP(&spaceID, "space", "s", "", "space id")
 	command.Flags().StringVarP(&tagName, "name", "n", "", "tag name")
 
 	return command
 }
 
 func tagList() *cobra.Command {
+	var spaceID string
+
 	command := &cobra.Command{
 		Use:   "list",
 		Short: "List tags",
 		Run: func(cmd *cobra.Command, args []string) {
+			if spaceID == "" {
+				cmd.Println("space id is required")
+				return
+			}
+
 			client, close := tagClient()
 			defer close()
 
-			res, err := client.ListTag(tokenContext(), &v1.ListTagRequest{})
+			res, err := client.ListTag(tokenContext(), &v1.ListTagRequest{
+				SpaceId: spaceID,
+			})
 			if err != nil {
 				cmd.Println(err)
 				return
@@ -75,6 +93,8 @@ func tagList() *cobra.Command {
 			table.Render()
 		},
 	}
+
+	command.Flags().StringVarP(&spaceID, "space", "s", "", "space id")
 
 	return command
 }

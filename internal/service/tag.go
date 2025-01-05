@@ -25,8 +25,9 @@ type TagService struct {
 
 func (t *TagService) CreateTag(ctx context.Context, request *v1.CreateTagRequest) (*v1.CreateTagResponse, error) {
 	tag := &model.Tag{
-		ID:   uuid.New().String(),
-		Name: request.GetName(),
+		ID:      uuid.New().String(),
+		Name:    request.GetName(),
+		SpaceID: request.GetSpaceId(),
 	}
 
 	err := t.store.CreateTag(ctx, tag)
@@ -50,15 +51,16 @@ func (t *TagService) GetTag(ctx context.Context, request *v1.GetTagRequest) (*v1
 
 	return &v1.GetTagResponse{
 		Tag: &v1.Tag{
-			Id:   tag.ID,
-			Name: tag.Name,
+			Id:      tag.ID,
+			Name:    tag.Name,
+			SpaceId: tag.SpaceID,
 		},
 	}, nil
 }
 
 func (t *TagService) ListTag(ctx context.Context, request *v1.ListTagRequest) (*v1.ListTagResponse, error) {
-
-	tags, err := t.store.ListTags(ctx, 0, 100)
+	spaceID := uuid.MustParse(request.GetSpaceId())
+	tags, err := t.store.ListTags(ctx, spaceID, 0, 100)
 	if err != nil {
 		return nil, err
 	}

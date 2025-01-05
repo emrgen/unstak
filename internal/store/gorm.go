@@ -372,9 +372,9 @@ func (g *GormStore) GetTag(ctx context.Context, id uuid.UUID) (*model.Tag, error
 	return &tag, nil
 }
 
-func (g *GormStore) ListTags(ctx context.Context, pageNumber, pageSize uint64) ([]*model.Tag, error) {
+func (g *GormStore) ListTags(ctx context.Context, spaceID uuid.UUID, pageNumber, pageSize uint64) ([]*model.Tag, error) {
 	var tags []*model.Tag
-	if err := g.db.Limit(int(pageSize)).Offset(int(pageNumber * pageSize)).Find(&tags).Error; err != nil {
+	if err := g.db.Where("space_id = ?", spaceID.String()).Limit(int(pageSize)).Offset(int(pageNumber * pageSize)).Find(&tags).Error; err != nil {
 		return nil, err
 	}
 
