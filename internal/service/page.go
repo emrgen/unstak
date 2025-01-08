@@ -4,7 +4,6 @@ import (
 	"context"
 	authx "github.com/emrgen/authbase/x"
 	docv1 "github.com/emrgen/document/apis/v1"
-	"github.com/emrgen/tinys/tiny"
 	v1 "github.com/emrgen/unpost/apis/v1"
 	"github.com/emrgen/unpost/internal/model"
 	"github.com/emrgen/unpost/internal/store"
@@ -13,7 +12,7 @@ import (
 )
 
 // NewPageService creates a new book service
-func NewPageService(cfg *tiny.ProjectConfig, store store.UnPostStore, docClient docv1.DocumentServiceClient) *PageService {
+func NewPageService(cfg *authx.AuthbaseConfig, store store.UnPostStore, docClient docv1.DocumentServiceClient) *PageService {
 	return &PageService{
 		cfg:       cfg,
 		docClient: docClient,
@@ -24,20 +23,25 @@ func NewPageService(cfg *tiny.ProjectConfig, store store.UnPostStore, docClient 
 var _ v1.PageServiceServer = new(PageService)
 
 type PageService struct {
-	cfg       *tiny.ProjectConfig
+	cfg       *authx.AuthbaseConfig
 	store     store.UnPostStore
 	docClient docv1.DocumentServiceClient
 	v1.UnimplementedPageServiceServer
 }
 
 func (p *PageService) CreatePage(ctx context.Context, request *v1.CreatePageRequest) (*v1.CreatePageResponse, error) {
+	poolID, err := authx.GetAuthbasePoolID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	userID, err := authx.GetAuthbaseAccountID(ctx)
 	if err != nil {
 		return nil, err
 	}
 
 	res, err := p.docClient.CreateDocument(p.cfg.IntoContext(), &docv1.CreateDocumentRequest{
-		ProjectId: p.cfg.TinyProjectID,
+		ProjectId: poolID.String(),
 	})
 	if err != nil {
 		return nil, err

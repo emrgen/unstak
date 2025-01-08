@@ -15,7 +15,6 @@ require (
 	github.com/deckarep/golang-set/v2 v2.7.0
 	github.com/emrgen/authbase v0.0.0-00010101000000-000000000000
 	github.com/emrgen/document v0.0.0-00010101000000-000000000000
-	github.com/emrgen/gopack v0.0.0-00010101000000-000000000000
 	github.com/emrgen/tinys v0.0.0-00010101000000-000000000000
 	github.com/envoyproxy/protoc-gen-validate v1.1.0
 	github.com/gobuffalo/packr v1.30.1

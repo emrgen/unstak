@@ -26,7 +26,6 @@ func CheckPermissionInterceptor() grpc.UnaryServerInterceptor {
 
 		return nil, errors.New("permission denied")
 	}
-
 }
 
 func UnaryGrpcRequestTimeInterceptor() grpc.UnaryServerInterceptor {

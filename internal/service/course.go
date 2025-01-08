@@ -4,14 +4,13 @@ import (
 	"context"
 	authx "github.com/emrgen/authbase/x"
 	docv1 "github.com/emrgen/document/apis/v1"
-	"github.com/emrgen/tinys/tiny"
 	v1 "github.com/emrgen/unpost/apis/v1"
 	"github.com/emrgen/unpost/internal/model"
 	"github.com/emrgen/unpost/internal/store"
 	"github.com/google/uuid"
 )
 
-func NewCourseService(cfg *tiny.ProjectConfig, store store.UnPostStore, docClient docv1.DocumentServiceClient) *CourseService {
+func NewCourseService(cfg *authx.AuthbaseConfig, store store.UnPostStore, docClient docv1.DocumentServiceClient) *CourseService {
 	return &CourseService{
 		cfg:       cfg,
 		store:     store,
@@ -22,20 +21,25 @@ func NewCourseService(cfg *tiny.ProjectConfig, store store.UnPostStore, docClien
 var _ v1.CourseServiceServer = new(CourseService)
 
 type CourseService struct {
-	cfg       *tiny.ProjectConfig
+	cfg       *authx.AuthbaseConfig
 	store     store.UnPostStore
 	docClient docv1.DocumentServiceClient
 	v1.UnimplementedCourseServiceServer
 }
 
 func (c *CourseService) CreateCourse(ctx context.Context, request *v1.CreateCourseRequest) (*v1.CreateCourseResponse, error) {
+	poolID, err := authx.GetAuthbasePoolID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	userID, err := authx.GetAuthbaseAccountID(ctx)
 	if err != nil {
 		return nil, err
 	}
 
 	res, err := c.docClient.CreateDocument(c.cfg.IntoContext(), &docv1.CreateDocumentRequest{
-		ProjectId: c.cfg.TinyProjectID,
+		ProjectId: poolID.String(),
 	})
 	if err != nil {
 		return nil, err

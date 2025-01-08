@@ -5,16 +5,15 @@ import (
 	"errors"
 	"fmt"
 	gatewayfile "github.com/black-06/grpc-gateway-file"
+	authv1 "github.com/emrgen/authbase/apis/v1"
 	authx "github.com/emrgen/authbase/x"
 	docv1 "github.com/emrgen/document/apis/v1"
-	"github.com/emrgen/tinys/tiny"
 	v1 "github.com/emrgen/unpost/apis/v1"
 	"github.com/emrgen/unpost/internal/config"
 	"github.com/emrgen/unpost/internal/model"
 	"github.com/emrgen/unpost/internal/service"
 	"github.com/emrgen/unpost/internal/store"
 	"github.com/gobuffalo/packr"
-	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	grpcmiddleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpcvalidator "github.com/grpc-ecosystem/go-grpc-middleware/validator"
@@ -55,7 +54,7 @@ func Start(grpcPort, httpPort string) error {
 		return err
 	}
 
-	projectConfig, err := tiny.ConfigFromEnv()
+	authConfig, err := authx.ConfigFromEnv()
 	if err != nil {
 		return err
 	}
@@ -64,6 +63,11 @@ func Start(grpcPort, httpPort string) error {
 	//defer tinyConn.Close()
 	//// tinyClient provides the membership service
 	//tinyClient := tinysv1.NewMembershipServiceClient(tinyConn)
+
+	authConn, err := grpc.NewClient(":4000", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	defer authConn.Close()
+	// tinyClient provides the membership service
+	authClient := authv1.NewAccessKeyServiceClient(authConn)
 
 	docConn, err := grpc.NewClient(":4020", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	defer docConn.Close()
@@ -74,7 +78,7 @@ func Start(grpcPort, httpPort string) error {
 		grpc.UnaryInterceptor(grpcmiddleware.ChainUnaryServer(
 			grpcvalidator.UnaryServerInterceptor(),
 			// verify the token
-			authx.VerifyTokenInterceptor(authx.NewUnverifiedKeyProvider()),
+			authx.VerifyTokenInterceptor(authx.NewUnverifiedKeyProvider(), authClient),
 			UnaryGrpcRequestTimeInterceptor(),
 		)),
 	)
@@ -106,20 +110,22 @@ func Start(grpcPort, httpPort string) error {
 		return err
 	}
 
-	// get authbase project id
-	jwtToken, _, err := jwt.NewParser().ParseUnverified(projectConfig.TinyAPIKey, jwt.MapClaims{})
+	res, err := authClient.GetTokenFromAccessKey(context.TODO(), &authv1.GetTokenFromAccessKeyRequest{
+		AccessKey: authConfig.AccessKey,
+	})
 	if err != nil {
-		panic(err)
+		return err
 	}
-	claim := jwtToken.Claims.(jwt.MapClaims)
-	projectID := claim["project_id"].(string)
-	userID := claim["user_id"].(string)
+	claims, err := authx.GetTokenClaims(res.AccessToken)
+	if err != nil {
+		return err
+	}
 
 	// create master space and the owner user
 	// create owner user
 	spaceID := uuid.New().String()
 	err = unpostStore.CreateUser(context.TODO(), &model.User{
-		ID:      userID,
+		ID:      claims.AccountID,
 		SpaceID: spaceID,
 	})
 	if err != nil {
@@ -128,8 +134,8 @@ func Start(grpcPort, httpPort string) error {
 
 	space := &model.Space{
 		ID:                spaceID,
-		OwnerID:           userID,
-		AuthbaseProjectID: projectID,
+		OwnerID:           claims.AccountID,
+		AuthbaseProjectID: claims.ProjectID,
 		Name:              "unpost",
 		Master:            true,
 	}
@@ -144,7 +150,7 @@ func Start(grpcPort, httpPort string) error {
 		// create master space member
 		err = unpostStore.AddSpaceMember(context.TODO(), &model.SpaceMember{
 			SpaceID: space.ID,
-			UserID:  userID,
+			UserID:  claims.AccountID,
 			Role:    model.SpaceRoleOwner,
 		})
 		if err != nil && !strings.Contains(err.Error(), "UNIQUE constraint failed: space_members.space_id") {
@@ -154,10 +160,10 @@ func Start(grpcPort, httpPort string) error {
 
 	// Register the grpc server
 	v1.RegisterTagServiceServer(grpcServer, service.NewTagService(unpostStore))
-	v1.RegisterPostServiceServer(grpcServer, service.NewPostService(projectConfig, unpostStore, docClient))
+	v1.RegisterPostServiceServer(grpcServer, service.NewPostService(authConfig, unpostStore, docClient))
 	v1.RegisterCollectionServiceServer(grpcServer, service.NewCollectionService(unpostStore))
-	v1.RegisterCourseServiceServer(grpcServer, service.NewCourseService(projectConfig, unpostStore, docClient))
-	v1.RegisterPageServiceServer(grpcServer, service.NewPageService(projectConfig, unpostStore, docClient))
+	v1.RegisterCourseServiceServer(grpcServer, service.NewCourseService(authConfig, unpostStore, docClient))
+	v1.RegisterPageServiceServer(grpcServer, service.NewPageService(authConfig, unpostStore, docClient))
 	v1.RegisterSpaceServiceServer(grpcServer, service.NewSpaceService(unpostStore))
 	v1.RegisterSpaceMemberServiceServer(grpcServer, service.NewSpaceMemberService(unpostStore))
 

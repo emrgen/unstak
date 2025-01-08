@@ -6,7 +6,6 @@ import (
 	authv1 "github.com/emrgen/authbase/apis/v1"
 	authx "github.com/emrgen/authbase/x"
 	docv1 "github.com/emrgen/document/apis/v1"
-	tiny "github.com/emrgen/tinys/tiny"
 	v1 "github.com/emrgen/unpost/apis/v1"
 	"github.com/emrgen/unpost/internal/model"
 	"github.com/emrgen/unpost/internal/store"
@@ -16,7 +15,7 @@ import (
 )
 
 // NewPostService creates a new post service
-func NewPostService(cfg *tiny.ProjectConfig, store store.UnPostStore, docClient docv1.DocumentServiceClient) *PostService {
+func NewPostService(cfg *authx.AuthbaseConfig, store store.UnPostStore, docClient docv1.DocumentServiceClient) *PostService {
 	return &PostService{
 		cfg:       cfg,
 		store:     store,
@@ -28,7 +27,7 @@ var _ v1.PostServiceServer = new(PostService)
 
 // PostService is the service that provides post operations
 type PostService struct {
-	cfg       *tiny.ProjectConfig
+	cfg       *authx.AuthbaseConfig
 	store     store.UnPostStore
 	docClient docv1.DocumentServiceClient
 	v1.UnimplementedPostServiceServer
@@ -36,6 +35,11 @@ type PostService struct {
 
 func (p *PostService) CreatePost(ctx context.Context, request *v1.CreatePostRequest) (*v1.CreatePostResponse, error) {
 	var err error
+
+	poolID, err := authx.GetAuthbasePoolID(ctx)
+	if err != nil {
+		return nil, err
+	}
 	userID, err := authx.GetAuthbaseAccountID(ctx)
 	if err != nil {
 		return nil, err
@@ -44,7 +48,7 @@ func (p *PostService) CreatePost(ctx context.Context, request *v1.CreatePostRequ
 	logrus.Infof("creating post %s", request.GetTitle())
 
 	doc, err := p.docClient.CreateDocument(p.cfg.IntoContext(), &docv1.CreateDocumentRequest{
-		ProjectId: p.cfg.TinyProjectID,
+		ProjectId: poolID.String(),
 		Title:     request.GetTitle(),
 		Content:   request.GetContent(),
 	})
@@ -127,6 +131,11 @@ func (p *PostService) GetPost(ctx context.Context, request *v1.GetPostRequest) (
 
 // ListPost retrieves a list of posts within a space
 func (p *PostService) ListPost(ctx context.Context, request *v1.ListPostRequest) (*v1.ListPostResponse, error) {
+	poolID, err := authx.GetAuthbasePoolID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	userID, err := authx.GetAuthbaseAccountID(ctx)
 	if err != nil {
 		return nil, err
@@ -150,7 +159,7 @@ func (p *PostService) ListPost(ctx context.Context, request *v1.ListPostRequest)
 
 	// get the documents from the document service
 	res, err := p.docClient.ListDocuments(p.cfg.IntoContext(), &docv1.ListDocumentsRequest{
-		ProjectId:   p.cfg.TinyProjectID,
+		ProjectId:   poolID.String(),
 		DocumentIds: docIDs,
 	})
 	if err != nil {
