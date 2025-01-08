@@ -2,7 +2,9 @@ package service
 
 import (
 	"context"
+	"errors"
 	mapset "github.com/deckarep/golang-set/v2"
+	"github.com/emrgen/authbase"
 	authv1 "github.com/emrgen/authbase/apis/v1"
 	authx "github.com/emrgen/authbase/x"
 	docv1 "github.com/emrgen/document/apis/v1"
@@ -15,11 +17,12 @@ import (
 )
 
 // NewPostService creates a new post service
-func NewPostService(cfg *authx.AuthbaseConfig, store store.UnPostStore, docClient docv1.DocumentServiceClient) *PostService {
+func NewPostService(cfg *authx.AuthbaseConfig, store store.UnPostStore, docClient docv1.DocumentServiceClient, authClient authbase.Client) *PostService {
 	return &PostService{
-		cfg:       cfg,
-		store:     store,
-		docClient: docClient,
+		cfg:        cfg,
+		store:      store,
+		docClient:  docClient,
+		authClient: authClient,
 	}
 }
 
@@ -27,9 +30,10 @@ var _ v1.PostServiceServer = new(PostService)
 
 // PostService is the service that provides post operations
 type PostService struct {
-	cfg       *authx.AuthbaseConfig
-	store     store.UnPostStore
-	docClient docv1.DocumentServiceClient
+	cfg        *authx.AuthbaseConfig
+	store      store.UnPostStore
+	docClient  docv1.DocumentServiceClient
+	authClient authbase.Client
 	v1.UnimplementedPostServiceServer
 }
 
@@ -44,8 +48,6 @@ func (p *PostService) CreatePost(ctx context.Context, request *v1.CreatePostRequ
 		return nil, err
 	}
 
-	logrus.Infof("creating post %s", request.GetTitle())
-
 	doc, err := p.docClient.CreateDocument(ctx, &docv1.CreateDocumentRequest{
 		ProjectId: poolID.String(),
 		Title:     request.GetTitle(),
@@ -55,8 +57,15 @@ func (p *PostService) CreatePost(ctx context.Context, request *v1.CreatePostRequ
 		return nil, err
 	}
 
+	logrus.Infof("created document %s", doc.GetDocument().GetId())
+
 	user, err := p.store.GetUser(ctx, userID)
 	if err != nil {
+		err2 := eraseDocument(ctx, p.docClient, doc.GetDocument().GetId())
+		if err2 != nil {
+			return nil, errors.Join(err, err2)
+		}
+
 		return nil, err
 	}
 
@@ -78,6 +87,10 @@ func (p *PostService) CreatePost(ctx context.Context, request *v1.CreatePostRequ
 		return nil
 	})
 	if err != nil {
+		err2 := eraseDocument(ctx, p.docClient, doc.GetDocument().GetId())
+		if err2 != nil {
+			return nil, errors.Join(err, err2)
+		}
 		return nil, err
 	}
 
@@ -104,6 +117,29 @@ func (p *PostService) GetPost(ctx context.Context, request *v1.GetPostRequest) (
 		return nil, err
 	}
 
+	poolID, err := authx.GetAuthbaseAccountID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	poolId := poolID.String()
+	authorsRes, err := p.authClient.ListAccounts(p.cfg.IntoContext(), &authv1.ListAccountsRequest{
+		PoolId:     &poolId,
+		AccountIds: []string{post.CreatedByID},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	var authors []*v1.User
+	for _, user := range authorsRes.GetAccounts() {
+		authors = append(authors, &v1.User{
+			Id:    user.Id,
+			Name:  user.Username,
+			Email: user.Email,
+		})
+	}
+
 	doc := res.GetDocument()
 	postProto := &v1.Post{
 		Id:        post.ID,
@@ -113,6 +149,7 @@ func (p *PostService) GetPost(ctx context.Context, request *v1.GetPostRequest) (
 		Excerpt:   doc.GetExcerpt(),
 		Thumbnail: doc.GetThumbnail(),
 		Tags:      make([]*v1.Tag, 0),
+		Authors:   authors,
 		Version:   doc.GetVersion(),
 		Status:    postStatusToProto(post.Status),
 	}
@@ -440,4 +477,11 @@ func postStatusToProto(status model.PostStatus) v1.PostStatus {
 	default:
 		return v1.PostStatus_DRAFT
 	}
+}
+
+func eraseDocument(ctx context.Context, docClient docv1.DocumentServiceClient, id string) error {
+	_, err := docClient.EraseDocument(ctx, &docv1.EraseDocumentRequest{
+		Id: id,
+	})
+	return err
 }

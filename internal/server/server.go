@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	gatewayfile "github.com/black-06/grpc-gateway-file"
+	"github.com/emrgen/authbase"
 	authv1 "github.com/emrgen/authbase/apis/v1"
 	authx "github.com/emrgen/authbase/x"
 	docv1 "github.com/emrgen/document/apis/v1"
@@ -64,10 +65,8 @@ func Start(grpcPort, httpPort string) error {
 	//// tinyClient provides the membership service
 	//tinyClient := tinysv1.NewMembershipServiceClient(tinyConn)
 
-	authConn, err := grpc.NewClient(":4000", grpc.WithTransportCredentials(insecure.NewCredentials()))
-	defer authConn.Close()
 	// tinyClient provides the membership service
-	authClient := authv1.NewAccessKeyServiceClient(authConn)
+	authClient, err := authbase.NewClient("4000")
 
 	docConn, err := grpc.NewClient(":4020", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	defer docConn.Close()
@@ -160,12 +159,12 @@ func Start(grpcPort, httpPort string) error {
 
 	// Register the grpc server
 	v1.RegisterTagServiceServer(grpcServer, service.NewTagService(unpostStore))
-	v1.RegisterPostServiceServer(grpcServer, service.NewPostService(authConfig, unpostStore, docClient))
+	v1.RegisterPostServiceServer(grpcServer, service.NewPostService(authConfig, unpostStore, docClient, authClient))
 	v1.RegisterCollectionServiceServer(grpcServer, service.NewCollectionService(unpostStore))
 	v1.RegisterCourseServiceServer(grpcServer, service.NewCourseService(authConfig, unpostStore, docClient))
 	v1.RegisterPageServiceServer(grpcServer, service.NewPageService(authConfig, unpostStore, docClient))
-	v1.RegisterSpaceServiceServer(grpcServer, service.NewSpaceService(unpostStore))
-	v1.RegisterSpaceMemberServiceServer(grpcServer, service.NewSpaceMemberService(unpostStore))
+	v1.RegisterSpaceServiceServer(grpcServer, service.NewSpaceService(authConfig, unpostStore, authClient))
+	v1.RegisterSpaceMemberServiceServer(grpcServer, service.NewSpaceMemberService(unpostStore, authClient))
 
 	// Register the rest gateway
 	if err = v1.RegisterPostServiceHandlerFromEndpoint(context.TODO(), mux, endpoint, opts); err != nil {

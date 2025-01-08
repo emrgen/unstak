@@ -2,6 +2,7 @@ package store
 
 import (
 	"context"
+	"errors"
 	"github.com/emrgen/unpost/internal/model"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -49,11 +50,12 @@ func (g *GormStore) CreateUser(ctx context.Context, user *model.User) error {
 
 func (g *GormStore) GetUser(ctx context.Context, id uuid.UUID) (*model.User, error) {
 	var user model.User
-	if err := g.db.Where("id = ?", id.String()).Preload("Space").First(&user).Error; err != nil {
-		return nil, err
+	err := g.db.Where("id = ?", id.String()).Preload("Space").First(&user).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) || &user == nil {
+		return nil, ErrUserNotFound
 	}
-
-	return &user, nil
+	
+	return &user, err
 }
 
 func (g *GormStore) CreatePlatformTag(ctx context.Context, tag *model.PlatformTag) error {

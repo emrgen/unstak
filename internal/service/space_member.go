@@ -2,18 +2,20 @@ package service
 
 import (
 	"context"
+	"github.com/emrgen/authbase"
 	v1 "github.com/emrgen/unpost/apis/v1"
 	"github.com/emrgen/unpost/internal/store"
 )
 
-func NewSpaceMemberService(store store.UnPostStore) *SpaceMemberService {
-	return &SpaceMemberService{store: store}
+func NewSpaceMemberService(store store.UnPostStore, authClient authbase.Client) *SpaceMemberService {
+	return &SpaceMemberService{store: store, authClient: authClient}
 }
 
 var _ v1.SpaceMemberServiceServer = (*SpaceMemberService)(nil)
 
 type SpaceMemberService struct {
-	store store.UnPostStore
+	store      store.UnPostStore
+	authClient authbase.Client
 	v1.UnimplementedSpaceMemberServiceServer
 }
 

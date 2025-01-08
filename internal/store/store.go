@@ -2,9 +2,14 @@ package store
 
 import (
 	"context"
+	"errors"
 	"github.com/google/uuid"
 
 	"github.com/emrgen/unpost/internal/model"
+)
+
+var (
+	ErrUserNotFound = errors.New("user not found")
 )
 
 type UnPostStore interface {

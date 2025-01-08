@@ -27,6 +27,7 @@ func init() {
 
 func createSpaceCommand() *cobra.Command {
 	var spaceName string
+	var pool bool
 
 	command := &cobra.Command{
 		Use:   "create",
@@ -43,9 +44,14 @@ func createSpaceCommand() *cobra.Command {
 				return
 			}
 
-			res, err := client.CreateSpace(tokenContext(), &v1.CreateSpaceRequest{
+			req := &v1.CreateSpaceRequest{
 				Name: spaceName,
-			})
+			}
+			if pool {
+				req.PoolName = spaceName
+			}
+			
+			res, err := client.CreateSpace(tokenContext(), req)
 			if err != nil {
 				logrus.Errorf("error creating space: %v", err)
 				return
@@ -59,6 +65,7 @@ func createSpaceCommand() *cobra.Command {
 	}
 
 	command.Flags().StringVarP(&spaceName, "name", "n", "", "space name")
+	command.Flags().BoolVarP(&pool, "pool", "p", false, "create a pool in authbase project")
 
 	return command
 }

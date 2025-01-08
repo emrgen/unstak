@@ -15,10 +15,8 @@ require (
 	github.com/deckarep/golang-set/v2 v2.7.0
 	github.com/emrgen/authbase v0.0.0-00010101000000-000000000000
 	github.com/emrgen/document v0.0.0-00010101000000-000000000000
-	github.com/emrgen/tinys v0.0.0-00010101000000-000000000000
 	github.com/envoyproxy/protoc-gen-validate v1.1.0
 	github.com/gobuffalo/packr v1.30.1
-	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/google/uuid v1.6.0
 	github.com/grpc-ecosystem/go-grpc-middleware v1.4.0
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.25.1
@@ -56,6 +54,7 @@ require (
 	github.com/gobuffalo/envy v1.10.2 // indirect
 	github.com/gobuffalo/packd v1.0.2 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
+	github.com/golang-jwt/jwt/v5 v5.2.1 // indirect
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
