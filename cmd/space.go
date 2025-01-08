@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"github.com/emrgen/unpost"
 	v1 "github.com/emrgen/unpost/apis/v1"
 	"github.com/olekukonko/tablewriter"
 	"github.com/sirupsen/logrus"
@@ -36,8 +37,11 @@ func createSpaceCommand() *cobra.Command {
 				return
 			}
 
-			client, close := spaceClient()
-			defer close()
+			client, err := unpost.NewClient(":4000")
+			if err != nil {
+				logrus.Errorf("error creating client: %v", err)
+				return
+			}
 
 			res, err := client.CreateSpace(tokenContext(), &v1.CreateSpaceRequest{
 				Name: spaceName,

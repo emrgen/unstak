@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"github.com/emrgen/unpost"
 	v1 "github.com/emrgen/unpost/apis/v1"
 	"github.com/olekukonko/tablewriter"
 	"github.com/sirupsen/logrus"
@@ -30,8 +31,12 @@ func collectionCreate() *cobra.Command {
 				return
 			}
 
-			client, close := collectionClient()
-			defer close()
+			client, err := unpost.NewClient("8030")
+			if err != nil {
+				logrus.Errorf("Error creating client: %v", err)
+				return
+			}
+			defer client.Close()
 
 			res, err := client.CreateCollection(tokenContext(), &v1.CreateCollectionRequest{Name: name})
 			if err != nil {
@@ -60,8 +65,12 @@ func collectionList() *cobra.Command {
 		Use:   "list",
 		Short: "List collections",
 		Run: func(cmd *cobra.Command, args []string) {
-			client, close := collectionClient()
-			defer close()
+			client, err := unpost.NewClient("8030")
+			if err != nil {
+				logrus.Errorf("Error creating client: %v", err)
+				return
+			}
+			defer client.Close()
 
 			res, err := client.ListCollection(tokenContext(), &v1.ListCollectionRequest{})
 			if err != nil {

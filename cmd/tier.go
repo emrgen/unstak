@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"github.com/emrgen/unpost"
 	v1 "github.com/emrgen/unpost/apis/v1"
 	"github.com/olekukonko/tablewriter"
 	"github.com/sirupsen/logrus"
@@ -31,8 +32,12 @@ func tierCreate() *cobra.Command {
 		Use:   "create",
 		Short: "Create a tier",
 		Run: func(cmd *cobra.Command, args []string) {
-			client, close := tierClient()
-			defer close()
+			client, err := unpost.NewClient("8030")
+			if err != nil {
+				logrus.Errorf("error creating client: %v", err)
+				return
+			}
+			defer client.Close()
 
 			if tierName == "" {
 				logrus.Errorf("missing required flag: --name")
@@ -80,8 +85,12 @@ func tierList() *cobra.Command {
 				logrus.Errorf("missing required flag: --project")
 			}
 
-			client, close := tierClient()
-			defer close()
+			client, err := unpost.NewClient("8030")
+			if err != nil {
+				logrus.Errorf("error creating client: %v", err)
+				return
+			}
+			defer client.Close()
 
 			res, err := client.ListTiers(tokenContext(), &v1.ListTiersRequest{})
 			if err != nil {

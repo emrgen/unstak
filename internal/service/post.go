@@ -46,7 +46,7 @@ func (p *PostService) CreatePost(ctx context.Context, request *v1.CreatePostRequ
 
 	logrus.Infof("creating post %s", request.GetTitle())
 
-	doc, err := p.docClient.CreateDocument(p.cfg.IntoContext(), &docv1.CreateDocumentRequest{
+	doc, err := p.docClient.CreateDocument(ctx, &docv1.CreateDocumentRequest{
 		ProjectId: poolID.String(),
 		Title:     request.GetTitle(),
 		Content:   request.GetContent(),

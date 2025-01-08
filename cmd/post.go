@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/emrgen/unpost"
 	v1 "github.com/emrgen/unpost/apis/v1"
 	"github.com/olekukonko/tablewriter"
 	"github.com/sirupsen/logrus"
@@ -44,8 +45,12 @@ func postCreate() *cobra.Command {
 				return
 			}
 
-			client, close := postClient()
-			defer close()
+			client, err := unpost.NewClient("8030")
+			if err != nil {
+				logrus.Error(err)
+				return
+			}
+			defer client.Close()
 
 			res, err := client.CreatePost(tokenContext(), &v1.CreatePostRequest{
 				SpaceId: spaceID,
@@ -82,8 +87,12 @@ func getPost() *cobra.Command {
 				return
 			}
 
-			client, close := postClient()
-			defer close()
+			client, err := unpost.NewClient("8030")
+			if err != nil {
+				logrus.Error(err)
+				return
+			}
+			defer client.Close()
 
 			res, err := client.GetPost(tokenContext(), &v1.GetPostRequest{
 				Id: postID,
@@ -122,8 +131,12 @@ func postList() *cobra.Command {
 		Use:   "list",
 		Short: "List posts",
 		Run: func(cmd *cobra.Command, args []string) {
-			client, close := postClient()
-			defer close()
+			client, err := unpost.NewClient("8030")
+			if err != nil {
+				logrus.Error(err)
+				return
+			}
+			defer client.Close()
 
 			req := &v1.ListPostRequest{}
 
@@ -182,8 +195,12 @@ func updatePost() *cobra.Command {
 				return
 			}
 
-			client, close := postClient()
-			defer close()
+			client, err := unpost.NewClient("8030")
+			if err != nil {
+				logrus.Error(err)
+				return
+			}
+			defer client.Close()
 
 			req := &v1.UpdatePostRequest{
 				Id:      postID,
@@ -210,7 +227,7 @@ func updatePost() *cobra.Command {
 				req.Thumbnail = &thumbnail
 			}
 
-			_, err := client.UpdatePost(tokenContext(), req)
+			_, err = client.UpdatePost(tokenContext(), req)
 			if err != nil {
 				logrus.Error(err)
 				return
@@ -232,13 +249,38 @@ func updatePost() *cobra.Command {
 }
 
 func deletePost() *cobra.Command {
+	var postID string
+
 	command := &cobra.Command{
 		Use:   "delete",
 		Short: "Delete a post",
 		Run: func(cmd *cobra.Command, args []string) {
+			if postID == "" {
+				logrus.Errorf("missing required flag: --post-id")
+				return
+			}
+
+			client, err := unpost.NewClient("8030")
+			if err != nil {
+				logrus.Error(err)
+				return
+			}
+			defer client.Close()
+
+			_, err = client.DeletePost(tokenContext(), &v1.DeletePostRequest{
+				Id: postID,
+			})
+			if err != nil {
+				logrus.Error(err)
+				return
+			}
+
+			cmd.Println("Post deleted")
 
 		},
 	}
+
+	command.Flags().StringVarP(&postID, "post-id", "p", "", "post id")
 
 	return command
 }
@@ -251,10 +293,24 @@ func addPostTag() *cobra.Command {
 		Use:   "add-tag",
 		Short: "Add a tag to a post",
 		Run: func(cmd *cobra.Command, args []string) {
-			client, close := postClient()
-			defer close()
+			if postID == "" {
+				logrus.Errorf("missing required flag: --post-id")
+				return
+			}
 
-			_, err := client.AddPostTag(tokenContext(), &v1.AddPostTagRequest{
+			if tagID == "" {
+				logrus.Errorf("missing required flag: --tag-id")
+				return
+			}
+
+			client, err := unpost.NewClient("8030")
+			if err != nil {
+				logrus.Error(err)
+				return
+			}
+			defer client.Close()
+
+			_, err = client.AddPostTag(tokenContext(), &v1.AddPostTagRequest{
 				PostId: postID,
 				TagId:  tagID,
 			})
@@ -290,10 +346,14 @@ func removePostTag() *cobra.Command {
 				return
 			}
 
-			client, close := postClient()
-			defer close()
+			client, err := unpost.NewClient("8030")
+			if err != nil {
+				logrus.Error(err)
+				return
+			}
+			defer client.Close()
 
-			_, err := client.RemovePostTag(tokenContext(), &v1.RemovePostTagRequest{
+			_, err = client.RemovePostTag(tokenContext(), &v1.RemovePostTagRequest{
 				PostId: postID,
 				TagId:  tagID,
 			})
@@ -328,8 +388,12 @@ func updatePostStatus() *cobra.Command {
 				return
 			}
 
-			client, close := postClient()
-			defer close()
+			client, err := unpost.NewClient("8030")
+			if err != nil {
+				logrus.Error(err)
+				return
+			}
+			defer client.Close()
 
 			var postStatus v1.PostStatus
 			switch status {
@@ -343,7 +407,7 @@ func updatePostStatus() *cobra.Command {
 				logrus.Errorf("invalid status, must be one of draft, published, archived")
 			}
 
-			_, err := client.UpdatePostStatus(tokenContext(), &v1.UpdatePostStatusRequest{
+			_, err = client.UpdatePostStatus(tokenContext(), &v1.UpdatePostStatusRequest{
 				PostId: postID,
 				Status: postStatus,
 			})

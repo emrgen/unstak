@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"github.com/emrgen/unpost"
 	v1 "github.com/emrgen/unpost/apis/v1"
 	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
@@ -35,8 +36,11 @@ func tagCreate() *cobra.Command {
 				return
 			}
 
-			client, close := tagClient()
-			defer close()
+			client, err := unpost.NewClient("8030")
+			if err != nil {
+				cmd.Println(err)
+				return
+			}
 
 			res, err := client.CreateTag(tokenContext(), &v1.CreateTagRequest{
 				SpaceId: spaceID,
@@ -72,8 +76,11 @@ func tagList() *cobra.Command {
 				return
 			}
 
-			client, close := tagClient()
-			defer close()
+			client, err := unpost.NewClient("8030")
+			if err != nil {
+				cmd.Println(err)
+				return
+			}
 
 			res, err := client.ListTag(tokenContext(), &v1.ListTagRequest{
 				SpaceId: spaceID,
