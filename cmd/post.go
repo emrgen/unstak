@@ -9,7 +9,7 @@ import (
 	"os"
 	"strings"
 )
- 
+
 var postCmd = &cobra.Command{
 	Use:   "post",
 	Short: "post commands",
@@ -116,6 +116,7 @@ func getPost() *cobra.Command {
 
 func postList() *cobra.Command {
 	var postStatus string
+	var spaceID string
 
 	command := &cobra.Command{
 		Use:   "list",
@@ -139,6 +140,10 @@ func postList() *cobra.Command {
 				req.Status = &status
 			}
 
+			if spaceID != "" {
+				req.SpaceId = &spaceID
+			}
+
 			res, err := client.ListPost(tokenContext(), req)
 			if err != nil {
 				logrus.Error(err)
@@ -154,6 +159,7 @@ func postList() *cobra.Command {
 		},
 	}
 
+	command.Flags().StringVarP(&spaceID, "space-id", "s", "", "space id")
 	command.Flags().StringVarP(&postStatus, "status", "t", "", "status of the post")
 
 	return command

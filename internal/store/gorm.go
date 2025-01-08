@@ -23,6 +23,23 @@ type GormStore struct {
 	db *gorm.DB
 }
 
+func (g *GormStore) ListPostBySpace(ctx context.Context, spaceID uuid.UUID, status *model.PostStatus) ([]*model.Post, error) {
+	var posts []*model.Post
+	if status != nil {
+		if err := g.db.Where("space_id = ? AND status = ?", spaceID.String(), status).Find(&posts).Error; err != nil {
+			return nil, err
+		}
+
+		return posts, nil
+	}
+
+	if err := g.db.Where("space_id = ?", spaceID.String()).Find(&posts).Error; err != nil {
+		return nil, err
+	}
+
+	return posts, nil
+}
+
 func (g *GormStore) CreateUser(ctx context.Context, user *model.User) error {
 	return g.db.Clauses(clause.OnConflict{
 		Columns:   []clause.Column{{Name: "id"}},

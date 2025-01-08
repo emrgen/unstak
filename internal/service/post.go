@@ -35,7 +35,6 @@ type PostService struct {
 
 func (p *PostService) CreatePost(ctx context.Context, request *v1.CreatePostRequest) (*v1.CreatePostResponse, error) {
 	var err error
-
 	poolID, err := authx.GetAuthbasePoolID(ctx)
 	if err != nil {
 		return nil, err
@@ -63,6 +62,7 @@ func (p *PostService) CreatePost(ctx context.Context, request *v1.CreatePostRequ
 
 	post := &model.Post{
 		ID:          uuid.New().String(),
+		SpaceID:     request.GetSpaceId(),
 		CreatedByID: userID.String(),
 		DocumentID:  doc.GetDocument().GetId(),
 		Authors:     []*model.User{user},
@@ -147,9 +147,11 @@ func (p *PostService) ListPost(ctx context.Context, request *v1.ListPostRequest)
 		status = &statusModel
 	}
 
-	posts, err := p.store.ListPostByOwnerID(ctx, userID, status)
-	if err != nil {
-		return nil, err
+	var posts []*model.Post
+	if request.GetSpaceId() != "" {
+		posts, err = p.store.ListPostBySpace(ctx, uuid.MustParse(request.GetSpaceId()), status)
+	} else {
+		posts, err = p.store.ListPostByOwnerID(ctx, userID, status)
 	}
 
 	docIDs := make([]string, 0)

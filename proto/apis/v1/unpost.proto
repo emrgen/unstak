@@ -275,9 +275,10 @@ message GetPostResponse {
 }
 
 message ListPostRequest {
-  int32 page = 2;
-  int32 per_page = 3;
+  optional string space_id = 1 [(validate.rules).string.uuid = true];
   optional PostStatus status = 4;
+  int32 page = 10;
+  int32 per_page =11;
 }
 
 message ListPostResponse {
