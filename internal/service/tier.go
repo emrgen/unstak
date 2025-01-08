@@ -2,7 +2,9 @@ package service
 
 import (
 	"context"
+	authx "github.com/emrgen/authbase/x"
 	v1 "github.com/emrgen/unpost/apis/v1"
+	"github.com/emrgen/unpost/internal/model"
 	"github.com/emrgen/unpost/internal/store"
 	"github.com/google/uuid"
 )
@@ -19,8 +21,25 @@ type TierService struct {
 }
 
 func (s *TierService) CreateTier(ctx context.Context, request *v1.CreateTierRequest) (*v1.CreateTierResponse, error) {
-	//TODO implement me
-	panic("implement me")
+	var err error
+	userID, err := authx.GetAuthbaseAccountID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	tier := &model.Tier{
+		Name:        request.GetName(),
+		CreatedByID: userID.String(),
+	}
+
+	err = s.store.CreateTier(ctx, tier)
+	if err != nil {
+		return nil, err
+	}
+
+	return &v1.CreateTierResponse{Tier: &v1.Tier{
+		Id: tier.ID,
+	}}, nil
 }
 
 func (s *TierService) GetTier(ctx context.Context, request *v1.GetTierRequest) (*v1.GetTierResponse, error) {

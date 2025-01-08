@@ -5,10 +5,8 @@ import (
 	"errors"
 	"fmt"
 	gatewayfile "github.com/black-06/grpc-gateway-file"
-	authv1 "github.com/emrgen/authbase/apis/v1"
+	authx "github.com/emrgen/authbase/x"
 	docv1 "github.com/emrgen/document/apis/v1"
-	gopackv1 "github.com/emrgen/gopack/apis/v1"
-	"github.com/emrgen/gopack/token"
 	"github.com/emrgen/tinys/tiny"
 	v1 "github.com/emrgen/unpost/apis/v1"
 	"github.com/emrgen/unpost/internal/config"
@@ -62,12 +60,6 @@ func Start(grpcPort, httpPort string) error {
 		return err
 	}
 
-	authConn, err := grpc.NewClient(":4000", grpc.WithTransportCredentials(insecure.NewCredentials()))
-	defer authConn.Close()
-	// tokenClient provides the token service
-	tokenClient := gopackv1.NewTokenServiceClient(authConn)
-	authClient := authv1.NewUserServiceClient(authConn)
-
 	//tinyConn, err := grpc.NewClient(":4010", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	//defer tinyConn.Close()
 	//// tinyClient provides the membership service
@@ -82,7 +74,7 @@ func Start(grpcPort, httpPort string) error {
 		grpc.UnaryInterceptor(grpcmiddleware.ChainUnaryServer(
 			grpcvalidator.UnaryServerInterceptor(),
 			// verify the token
-			token.VerifyTokenInterceptor(tokenClient),
+			authx.VerifyTokenInterceptor(authx.NewUnverifiedKeyProvider()),
 			UnaryGrpcRequestTimeInterceptor(),
 		)),
 	)
@@ -123,24 +115,19 @@ func Start(grpcPort, httpPort string) error {
 	projectID := claim["project_id"].(string)
 	userID := claim["user_id"].(string)
 
-	_, err = tokenClient.VerifyToken(context.TODO(), &gopackv1.VerifyTokenRequest{
-		Token: projectConfig.TinyAPIKey,
-	})
-	if err != nil {
-		return err
-	}
-
 	// create master space and the owner user
 	// create owner user
+	spaceID := uuid.New().String()
 	err = unpostStore.CreateUser(context.TODO(), &model.User{
-		ID: userID,
+		ID:      userID,
+		SpaceID: spaceID,
 	})
 	if err != nil {
 		return err
 	}
 
 	space := &model.Space{
-		ID:                uuid.New().String(),
+		ID:                spaceID,
 		OwnerID:           userID,
 		AuthbaseProjectID: projectID,
 		Name:              "unpost",
@@ -167,7 +154,7 @@ func Start(grpcPort, httpPort string) error {
 
 	// Register the grpc server
 	v1.RegisterTagServiceServer(grpcServer, service.NewTagService(unpostStore))
-	v1.RegisterPostServiceServer(grpcServer, service.NewPostService(projectConfig, unpostStore, authClient, docClient))
+	v1.RegisterPostServiceServer(grpcServer, service.NewPostService(projectConfig, unpostStore, docClient))
 	v1.RegisterCollectionServiceServer(grpcServer, service.NewCollectionService(unpostStore))
 	v1.RegisterCourseServiceServer(grpcServer, service.NewCourseService(projectConfig, unpostStore, docClient))
 	v1.RegisterPageServiceServer(grpcServer, service.NewPageService(projectConfig, unpostStore, docClient))
@@ -263,3 +250,5 @@ func Start(grpcPort, httpPort string) error {
 
 	return nil
 }
+
+func createMasterSpace() {}

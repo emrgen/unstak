@@ -32,7 +32,7 @@ func (g *GormStore) CreateUser(ctx context.Context, user *model.User) error {
 
 func (g *GormStore) GetUser(ctx context.Context, id uuid.UUID) (*model.User, error) {
 	var user model.User
-	if err := g.db.Where("id = ?", id.String()).First(&user).Error; err != nil {
+	if err := g.db.Where("id = ?", id.String()).Preload("Space").First(&user).Error; err != nil {
 		return nil, err
 	}
 

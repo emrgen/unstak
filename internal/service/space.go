@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	authx "github.com/emrgen/authbase/x"
 	v1 "github.com/emrgen/unpost/apis/v1"
 	"github.com/emrgen/unpost/internal/model"
@@ -22,9 +23,18 @@ type SpaceService struct {
 }
 
 func (s *SpaceService) CreateSpace(ctx context.Context, request *v1.CreateSpaceRequest) (*v1.CreateSpaceResponse, error) {
-	userID, err := authx.GetAuthbaseUserID(ctx)
+	userID, err := authx.GetAuthbaseAccountID(ctx)
 	if err != nil {
 		return nil, err
+	}
+
+	user, err := s.store.GetUser(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	if !user.Space.Master {
+		return nil, errors.New("only user of master space can create a new space")
 	}
 
 	space := &model.Space{

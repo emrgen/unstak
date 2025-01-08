@@ -13,10 +13,11 @@ The user can further add other users to the project as project members.
 
 The user can create token for project which can be used to access the project resources without login.
 
-## Features
+## Progress
 
 - [x] Create post
-- [ ] Update post
+- [x] Update post
+- [x] List posts
 - [x] Delete post
 - [ ] Erase post
 - [x] Get post
@@ -29,9 +30,29 @@ The user can create token for project which can be used to access the project re
 - [ ] List collection
 - [ ] Delete collection
 - [ ] Create tier
-- [ ] List subscription
-- [ ] Delete subscription
-- [ ] Update subscription
+- [ ] Get tier
+- [ ] List tier
+- [ ] Update tier
+- [ ] Delete tier
+- [ ] List subscriptions
+- [x] Create space
+- [x] List space
+- [ ] Update space
+- [ ] delete space
+- [ ] Get space
+- [ ] list space members
+- [ ] add space member
+- [ ] remove space member
+- [ ] update space member
+- [ ] create offline token with restricted permission to one space
+- [ ] list offline token
+- [ ] remove offline token
+- [ ] delete post
+- [ ] list post authors
+- [ ] add post author
+- [ ] remove post author
+- [ ] update post author
+
 
 ## Installation
 

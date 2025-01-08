@@ -62,7 +62,7 @@ func (c *CollectionService) GetCollection(ctx context.Context, request *v1.GetCo
 
 // ListCollection lists collections
 func (c *CollectionService) ListCollection(ctx context.Context, request *v1.ListCollectionRequest) (*v1.ListCollectionResponse, error) {
-	userID, err := authx.GetAuthbaseUserID(ctx)
+	userID, err := authx.GetAuthbaseAccountID(ctx)
 	if err != nil {
 		return nil, err
 	}

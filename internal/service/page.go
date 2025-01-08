@@ -31,7 +31,7 @@ type PageService struct {
 }
 
 func (p *PageService) CreatePage(ctx context.Context, request *v1.CreatePageRequest) (*v1.CreatePageResponse, error) {
-	userID, err := authx.GetAuthbaseUserID(ctx)
+	userID, err := authx.GetAuthbaseAccountID(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -68,8 +68,7 @@ func (p *PageService) GetPage(ctx context.Context, request *v1.GetPageRequest) (
 	}
 
 	res, err := p.docClient.GetDocument(p.cfg.IntoContext(), &docv1.GetDocumentRequest{
-		ProjectId: p.cfg.TinyProjectID,
-		Id:        page.DocumentID,
+		Id: page.DocumentID,
 	})
 	if err != nil {
 		return nil, err

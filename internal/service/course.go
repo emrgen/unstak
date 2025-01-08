@@ -29,7 +29,7 @@ type CourseService struct {
 }
 
 func (c *CourseService) CreateCourse(ctx context.Context, request *v1.CreateCourseRequest) (*v1.CreateCourseResponse, error) {
-	userID, err := authx.GetAuthbaseUserID(ctx)
+	userID, err := authx.GetAuthbaseAccountID(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -66,8 +66,7 @@ func (c *CourseService) GetCourse(ctx context.Context, request *v1.GetCourseRequ
 	}
 
 	res, err := c.docClient.GetDocument(c.cfg.IntoContext(), &docv1.GetDocumentRequest{
-		ProjectId: c.cfg.TinyProjectID,
-		Id:        course.DocumentID,
+		Id: course.DocumentID,
 	})
 	if err != nil {
 		return nil, err

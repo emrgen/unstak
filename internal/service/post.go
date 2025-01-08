@@ -16,12 +16,11 @@ import (
 )
 
 // NewPostService creates a new post service
-func NewPostService(cfg *tiny.ProjectConfig, store store.UnPostStore, authClient authv1.UserServiceClient, docClient docv1.DocumentServiceClient) *PostService {
+func NewPostService(cfg *tiny.ProjectConfig, store store.UnPostStore, docClient docv1.DocumentServiceClient) *PostService {
 	return &PostService{
-		cfg:        cfg,
-		store:      store,
-		authClient: authClient,
-		docClient:  docClient,
+		cfg:       cfg,
+		store:     store,
+		docClient: docClient,
 	}
 }
 
@@ -29,16 +28,15 @@ var _ v1.PostServiceServer = new(PostService)
 
 // PostService is the service that provides post operations
 type PostService struct {
-	cfg        *tiny.ProjectConfig
-	store      store.UnPostStore
-	authClient authv1.UserServiceClient
-	docClient  docv1.DocumentServiceClient
+	cfg       *tiny.ProjectConfig
+	store     store.UnPostStore
+	docClient docv1.DocumentServiceClient
 	v1.UnimplementedPostServiceServer
 }
 
 func (p *PostService) CreatePost(ctx context.Context, request *v1.CreatePostRequest) (*v1.CreatePostResponse, error) {
 	var err error
-	userID, err := authx.GetAuthbaseUserID(ctx)
+	userID, err := authx.GetAuthbaseAccountID(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -96,8 +94,7 @@ func (p *PostService) GetPost(ctx context.Context, request *v1.GetPostRequest) (
 	}
 
 	res, err := p.docClient.GetDocument(p.cfg.IntoContext(), &docv1.GetDocumentRequest{
-		ProjectId: p.cfg.TinyProjectID,
-		Id:        post.DocumentID,
+		Id: post.DocumentID,
 	})
 	if err != nil {
 		return nil, err
@@ -130,7 +127,7 @@ func (p *PostService) GetPost(ctx context.Context, request *v1.GetPostRequest) (
 
 // ListPost retrieves a list of posts within a space
 func (p *PostService) ListPost(ctx context.Context, request *v1.ListPostRequest) (*v1.ListPostResponse, error) {
-	userID, err := authx.GetAuthbaseUserID(ctx)
+	userID, err := authx.GetAuthbaseAccountID(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -171,7 +168,7 @@ func (p *PostService) ListPost(ctx context.Context, request *v1.ListPostRequest)
 		userIDs.Add(post.CreatedByID)
 	}
 
-	users := make(map[string]*authv1.User)
+	users := make(map[string]*authv1.Account)
 	//if res, err := p.authClient.ListUsers(ctx, &authv1.ListUsersRequest{}); err != nil {
 	//	return nil, err
 	//} else {
@@ -222,7 +219,6 @@ func (p *PostService) UpdatePost(ctx context.Context, request *v1.UpdatePostRequ
 		logrus.Infof("updating post %d", request.GetVersion())
 
 		_, err = p.docClient.UpdateDocument(p.cfg.IntoContext(), &docv1.UpdateDocumentRequest{
-			ProjectId: p.cfg.TinyProjectID,
 			Id:        post.DocumentID,
 			Title:     request.Title,
 			Content:   request.Content,
@@ -345,8 +341,11 @@ func (p *PostService) RemovePostTag(ctx context.Context, request *v1.RemovePostT
 // UpdatePostReaction updates the reaction of a post
 // A cron job will be responsible for updating the post's aggregated reaction counts
 func (p *PostService) UpdatePostReaction(ctx context.Context, request *v1.UpdatePostReactionRequest) (*v1.UpdatePostReactionResponse, error) {
-	userID, err := authx.GetAuthbaseUserID(ctx)
-	postID := uuid.MustParse(request.GetPostId())
+	userID, err := authx.GetAuthbaseAccountID(ctx)
+	if err != nil {
+		return nil, err
+	}
+	postID, err := uuid.Parse(request.GetPostId())
 	if err != nil {
 		return nil, err
 	}
