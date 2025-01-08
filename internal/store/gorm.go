@@ -54,7 +54,7 @@ func (g *GormStore) GetUser(ctx context.Context, id uuid.UUID) (*model.User, err
 	if errors.Is(err, gorm.ErrRecordNotFound) || &user == nil {
 		return nil, ErrUserNotFound
 	}
-	
+
 	return &user, err
 }
 
@@ -88,13 +88,26 @@ func (g *GormStore) CreateSpace(ctx context.Context, space *model.Space) error {
 }
 
 func (g *GormStore) GetSpace(ctx context.Context, spaceID uuid.UUID) (*model.Space, error) {
-	//TODO implement me
-	panic("implement me")
+	var space model.Space
+	if err := g.db.Where("id = ?", spaceID.String()).First(&space).Error; err != nil {
+		return nil, err
+	}
+
+	return &space, nil
 }
 
 func (g *GormStore) ListSpaces(ctx context.Context, userID uuid.UUID) ([]*model.Space, error) {
-	//TODO implement me
-	panic("implement me")
+	var members []*model.SpaceMember
+	if err := g.db.Where("user_id = ?", userID.String()).Preload("Space").Find(&members).Error; err != nil {
+		return nil, err
+	}
+
+	var spaces []*model.Space
+	for _, member := range members {
+		spaces = append(spaces, member.Space)
+	}
+
+	return spaces, nil
 }
 
 func (g *GormStore) UpdateSpace(ctx context.Context, space *model.Space) error {

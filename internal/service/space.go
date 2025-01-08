@@ -107,8 +107,26 @@ func (s *SpaceService) GetSpace(ctx context.Context, request *v1.GetSpaceRequest
 }
 
 func (s *SpaceService) ListSpace(ctx context.Context, request *v1.ListSpaceRequest) (*v1.ListSpaceResponse, error) {
-	//TODO implement me
-	panic("implement me")
+	accountID, err := authx.GetAuthbaseAccountID(ctx)
+	if err != nil {
+		return nil, err
+	}
+	spaces, err := s.store.ListSpaces(ctx, accountID)
+	if err != nil {
+		return nil, err
+	}
+
+	var res []*v1.Space
+	for _, space := range spaces {
+		res = append(res, &v1.Space{
+			Id:   space.ID,
+			Name: space.Name,
+		})
+	}
+
+	return &v1.ListSpaceResponse{
+		Spaces: res,
+	}, nil
 }
 
 func (s *SpaceService) UpdateSpace(ctx context.Context, request *v1.UpdateSpaceRequest) (*v1.UpdateSpaceResponse, error) {
