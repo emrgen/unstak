@@ -1,7 +1,5 @@
 package model
 
-import "gorm.io/gorm"
-
 type SpaceRole string
 
 const (
@@ -13,7 +11,6 @@ const (
 )
 
 type SpaceMember struct {
-	gorm.Model
 	UserID  string `gorm:"uuid;primaryKey;not null;"`
 	SpaceID string `gorm:"uuid;primaryKey;not null;constraint:OnUpdate:CASCADE,OnDelete:CASCADE"`
 	Role    UserRole

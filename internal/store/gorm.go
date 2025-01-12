@@ -59,28 +59,33 @@ func (g *GormStore) GetUser(ctx context.Context, id uuid.UUID) (*model.User, err
 }
 
 func (g *GormStore) CreatePlatformTag(ctx context.Context, tag *model.PlatformTag) error {
-	//TODO implement me
-	panic("implement me")
+	return g.db.Create(tag).Error
 }
 
 func (g *GormStore) GetPlatformTag(ctx context.Context, id uuid.UUID) (*model.PlatformTag, error) {
-	//TODO implement me
-	panic("implement me")
+	var tag model.PlatformTag
+	if err := g.db.Where("id = ?", id.String()).First(&tag).Error; err != nil {
+		return nil, err
+	}
+
+	return &tag, nil
 }
 
 func (g *GormStore) ListPlatformTags(ctx context.Context, pageNumber, pageSize uint64) ([]*model.PlatformTag, error) {
-	//TODO implement me
-	panic("implement me")
+	var tags []*model.PlatformTag
+	if err := g.db.Limit(int(pageSize)).Offset(int(pageNumber * pageSize)).Find(&tags).Error; err != nil {
+		return nil, err
+	}
+
+	return tags, nil
 }
 
 func (g *GormStore) UpdatePlatformTag(ctx context.Context, tag *model.PlatformTag) error {
-	//TODO implement me
-	panic("implement me")
+	return g.db.Save(tag).Error
 }
 
 func (g *GormStore) DeletePlatformTag(ctx context.Context, id uuid.UUID) error {
-	//TODO implement me
-	panic("implement me")
+	return g.db.Delete(&model.PlatformTag{ID: id.String()}).Error
 }
 
 func (g *GormStore) CreateSpace(ctx context.Context, space *model.Space) error {
@@ -111,37 +116,53 @@ func (g *GormStore) ListSpaces(ctx context.Context, userID uuid.UUID) ([]*model.
 }
 
 func (g *GormStore) UpdateSpace(ctx context.Context, space *model.Space) error {
-	//TODO implement me
-	panic("implement me")
+	return g.db.Save(space).Error
 }
 
 func (g *GormStore) DeleteSpace(ctx context.Context, spaceID uuid.UUID) error {
-	//TODO implement me
-	panic("implement me")
+	space := &model.Space{
+		ID: spaceID.String(),
+	}
+	return g.db.Delete(space).Error
 }
 
 func (g *GormStore) AddSpaceMember(ctx context.Context, member *model.SpaceMember) error {
 	return g.db.Create(member).Error
 }
 
-func (g *GormStore) GetSpaceMember(ctx context.Context, subMemberID uuid.UUID) (*model.SpaceMember, error) {
-	//TODO implement me
-	panic("implement me")
+func (g *GormStore) GetSpaceMember(ctx context.Context, spaceID, memberID uuid.UUID) (*model.SpaceMember, error) {
+	var member model.SpaceMember
+	if err := g.db.
+		Where("space_id = ? AND user_id = ?", spaceID.String(), memberID.String()).
+		Preload("User").
+		Preload("User").
+		Preload("Space").
+		First(&member).Error; err != nil {
+		return nil, err
+	}
+
+	return &member, nil
 }
 
 func (g *GormStore) ListSpaceMembers(ctx context.Context, subID uuid.UUID) ([]*model.SpaceMember, error) {
-	//TODO implement me
-	panic("implement me")
+	var members []*model.SpaceMember
+	if err := g.db.Where("space_id = ?", subID.String()).Find(&members).Error; err != nil {
+		return nil, err
+	}
+
+	return members, nil
 }
 
 func (g *GormStore) UpdateSpaceMember(ctx context.Context, member *model.SpaceMember) error {
-	//TODO implement me
-	panic("implement me")
+	return g.db.Save(member).Error
 }
 
-func (g *GormStore) RemoveSpaceMember(ctx context.Context, subMemberID uuid.UUID) error {
-	//TODO implement me
-	panic("implement me")
+func (g *GormStore) RemoveSpaceMember(ctx context.Context, spaceID, memberID uuid.UUID) error {
+	member := &model.SpaceMember{
+		UserID:  memberID.String(),
+		SpaceID: spaceID.String(),
+	}
+	return g.db.Delete(member).Error
 }
 
 func (g *GormStore) CreateCourse(ctx context.Context, course *model.Course) error {

@@ -176,11 +176,11 @@ type SpaceMemberStore interface {
 	// AddSpaceMember creates a new member.
 	AddSpaceMember(ctx context.Context, member *model.SpaceMember) error
 	// GetSpaceMember retrieves a member by ID.
-	GetSpaceMember(ctx context.Context, subMemberID uuid.UUID) (*model.SpaceMember, error)
+	GetSpaceMember(ctx context.Context, spaceID, memberID uuid.UUID) (*model.SpaceMember, error)
 	// ListSpaceMembers retrieves a list of members by space ID.
 	ListSpaceMembers(ctx context.Context, subID uuid.UUID) ([]*model.SpaceMember, error)
 	// UpdateSpaceMember updates a member.
 	UpdateSpaceMember(ctx context.Context, member *model.SpaceMember) error
 	// RemoveSpaceMember deletes a member by ID.
-	RemoveSpaceMember(ctx context.Context, subMemberID uuid.UUID) error
+	RemoveSpaceMember(ctx context.Context, spaceID, memberID uuid.UUID) error
 }
