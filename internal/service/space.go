@@ -130,8 +130,48 @@ func (s *SpaceService) ListSpace(ctx context.Context, request *v1.ListSpaceReque
 }
 
 func (s *SpaceService) UpdateSpace(ctx context.Context, request *v1.UpdateSpaceRequest) (*v1.UpdateSpaceResponse, error) {
-	//TODO implement me
-	panic("implement me")
+	accountID, err := authx.GetAuthbaseAccountID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	spaceID, err := uuid.Parse(request.GetId())
+	if err != nil {
+		return nil, err
+	}
+	space, err := s.store.GetSpace(ctx, spaceID)
+	if err != nil {
+		return nil, err
+	}
+
+	// check if user is in a space member with admin role
+	member, err := s.store.GetSpaceMember(ctx, spaceID, accountID)
+	if err != nil {
+		return nil, err
+	}
+
+	if member.Role != model.UserRoleAdmin {
+		return nil, errors.New("only admin can update space")
+	}
+
+	// update space
+	if request.Name != nil {
+		space.Name = request.GetName()
+	}
+	err = s.store.UpdateSpace(ctx, space)
+	if err != nil {
+		return nil, err
+	}
+
+	return &v1.UpdateSpaceResponse{
+		Space: &v1.Space{
+			Id:          space.ID,
+			Name:        space.Name,
+			Description: "",
+			Thumbnail:   "",
+			Private:     false,
+		},
+	}, nil
 }
 
 func (s *SpaceService) DeleteSpace(ctx context.Context, request *v1.DeleteSpaceRequest) (*v1.DeleteSpaceResponse, error) {

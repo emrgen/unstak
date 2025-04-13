@@ -85,7 +85,7 @@ func (c *CollectionService) ListCollection(ctx context.Context, request *v1.List
 	}, nil
 }
 
-// UpdateCollection updates a collection
+// UpdateCollection updates a collection name
 func (c *CollectionService) UpdateCollection(ctx context.Context, request *v1.UpdateCollectionRequest) (*v1.UpdateCollectionResponse, error) {
 	collection := &model.Collection{
 		ID:   uuid.MustParse(request.GetId()).String(),

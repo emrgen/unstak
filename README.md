@@ -26,9 +26,9 @@ The user can create token for project which can be used to access the project re
 - [x] Create tag
 - [x] List tag
 - [ ] Delete tag
-- [ ] Create collection
-- [ ] List collection
-- [ ] Delete collection
+- [x] Create collection
+- [x] List collection
+- [x] Delete collection
 - [ ] Create tier
 - [ ] Get tier
 - [ ] List tier
@@ -37,7 +37,7 @@ The user can create token for project which can be used to access the project re
 - [ ] List subscriptions
 - [x] Create space
 - [x] List space
-- [ ] Update space
+- [x] Update space
 - [ ] delete space
 - [ ] Get space
 - [ ] list space members

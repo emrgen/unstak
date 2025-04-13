@@ -41,7 +41,7 @@ deps:
 	#cp -r /Users/subhasis/go/src/github.com/emrgen/blocktree /Users/subhasis/go/src/github.com/emrgen/blocktree
 
 build:
-	go build -o ./bin/unpost ./main.go
+	go build -o ./bin/unpost ./main/main.go
 
 clean:
 	@echo "Cleaning..."

@@ -48,6 +48,12 @@ func (p *PostService) CreatePost(ctx context.Context, request *v1.CreatePostRequ
 		return nil, err
 	}
 
+	user, err := p.store.GetUser(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	// create a document in the document service
 	doc, err := p.docClient.CreateDocument(ctx, &docv1.CreateDocumentRequest{
 		ProjectId: poolID.String(),
 		Title:     request.GetTitle(),
@@ -58,16 +64,6 @@ func (p *PostService) CreatePost(ctx context.Context, request *v1.CreatePostRequ
 	}
 
 	logrus.Infof("created document %s", doc.GetDocument().GetId())
-
-	user, err := p.store.GetUser(ctx, userID)
-	if err != nil {
-		err2 := eraseDocument(ctx, p.docClient, doc.GetDocument().GetId())
-		if err2 != nil {
-			return nil, errors.Join(err, err2)
-		}
-
-		return nil, err
-	}
 
 	post := &model.Post{
 		ID:          uuid.New().String(),
@@ -86,6 +82,9 @@ func (p *PostService) CreatePost(ctx context.Context, request *v1.CreatePostRequ
 
 		return nil
 	})
+
+	// if the post creation fails, we need to erase the document created in the document service
+	// TODO: use a transaction to rollback the document creation
 	if err != nil {
 		err2 := eraseDocument(ctx, p.docClient, doc.GetDocument().GetId())
 		if err2 != nil {
