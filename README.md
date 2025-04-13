@@ -25,12 +25,12 @@ The user can create token for project which can be used to access the project re
 - [ ] Search post
 - [x] Create tag
 - [x] List tag
-- [ ] Delete tag
+- [x] Delete tag
 - [x] Create collection
 - [x] List collection
 - [x] Delete collection
-- [ ] Create tier
-- [ ] Get tier
+- [x] Create tier
+- [x] Get tier
 - [ ] List tier
 - [ ] Update tier
 - [ ] Delete tier
@@ -40,8 +40,8 @@ The user can create token for project which can be used to access the project re
 - [x] Update space
 - [ ] delete space
 - [ ] Get space
-- [ ] list space members
-- [ ] add space member
+- [x] list space members
+- [x] add space member
 - [ ] remove space member
 - [ ] update space member
 - [ ] create offline token with restricted permission to one space

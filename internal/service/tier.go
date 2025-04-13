@@ -9,8 +9,10 @@ import (
 	"github.com/google/uuid"
 )
 
-func NewTierService() v1.TierServiceServer {
-	return &TierService{}
+func NewTierService(store store.UnPostStore) v1.TierServiceServer {
+	return &TierService{
+		store: store,
+	}
 }
 
 var _ v1.TierServiceServer = (*TierService)(nil)
