@@ -124,6 +124,29 @@ func (s *SpaceMemberService) UpdateSpaceMember(ctx context.Context, request *v1.
 }
 
 func (s *SpaceMemberService) DeleteSpaceMember(ctx context.Context, request *v1.DeleteSpaceMemberRequest) (*v1.DeleteSpaceMemberResponse, error) {
-	//TODO implement me
-	panic("implement me")
+	accountID, err := authx.GetAuthbaseAccountID(ctx)
+	if err != nil {
+		return nil, err
+	}
+	spaceID := uuid.MustParse(request.GetSpaceId())
+	if spaceID == uuid.Nil {
+		return nil, errors.New("space id is required")
+	}
+	member, err := s.store.GetSpaceMember(ctx, accountID, spaceID)
+	if err != nil {
+		return nil, err
+	}
+
+	if member != nil && member.Role != model.UserRoleAdmin && member.Role != model.UserRoleOwner {
+		return nil, errors.New("only admin or owner can add space member")
+	}
+
+	userID := uuid.MustParse(request.GetUserId())
+
+	err = s.store.RemoveSpaceMember(ctx, userID, spaceID)
+	if err != nil {
+		return nil, err
+	}
+
+	return &v1.DeleteSpaceMemberResponse{}, nil
 }

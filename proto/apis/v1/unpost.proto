@@ -191,7 +191,8 @@ message UpdateSpaceMemberResponse {
 }
 
 message DeleteSpaceMemberRequest {
-  string id = 1 [(validate.rules).string.uuid = true];
+  string space_id = 1 [(validate.rules).string.uuid = true];
+  string user_id = 2 [(validate.rules).string.uuid = true];
 }
 
 message DeleteSpaceMemberResponse {
@@ -222,7 +223,7 @@ service SpaceMemberService {
   }
 
   rpc DeleteSpaceMember(DeleteSpaceMemberRequest) returns (DeleteSpaceMemberResponse) {
-    option (google.api.http) = {delete: "/v1/space_members/{id}"};
+    option (google.api.http) = {delete: "/v1/space_members/{space_id}/{user_id}"};
   }
 }
 

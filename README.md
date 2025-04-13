@@ -42,7 +42,7 @@ The user can create token for project which can be used to access the project re
 - [ ] Get space
 - [x] list space members
 - [x] add space member
-- [ ] remove space member
+- [x] remove space member
 - [ ] update space member
 - [ ] create offline token with restricted permission to one space
 - [ ] list offline token
