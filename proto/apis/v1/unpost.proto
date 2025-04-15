@@ -245,7 +245,7 @@ message Post {
   map<string, uint32> reaction = 9;
   PostStatus status = 10;
   repeated Tag tags = 11;
-  User original_author = 13;
+  User main_author = 13;
   repeated User authors = 14;
   google.protobuf.Timestamp created_at = 20;
   google.protobuf.Timestamp updated_at = 21;

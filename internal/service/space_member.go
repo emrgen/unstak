@@ -11,14 +11,14 @@ import (
 	"github.com/google/uuid"
 )
 
-func NewSpaceMemberService(store store.UnPostStore, authClient authbase.Client) *SpaceMemberService {
+func NewSpaceMemberService(store store.UnstakStore, authClient authbase.Client) *SpaceMemberService {
 	return &SpaceMemberService{store: store, authClient: authClient}
 }
 
 var _ v1.SpaceMemberServiceServer = (*SpaceMemberService)(nil)
 
 type SpaceMemberService struct {
-	store      store.UnPostStore
+	store      store.UnstakStore
 	authClient authbase.Client
 	v1.UnimplementedSpaceMemberServiceServer
 }

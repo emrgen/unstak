@@ -17,7 +17,7 @@ func NewGormStore(db *gorm.DB) *GormStore {
 }
 
 var (
-	_ UnPostStore = (*GormStore)(nil)
+	_ UnstakStore = (*GormStore)(nil)
 )
 
 type GormStore struct {
@@ -513,7 +513,7 @@ func (g *GormStore) RemoveTierMember(ctx context.Context, subMemberID uuid.UUID)
 	panic("implement me")
 }
 
-func (g *GormStore) Transaction(ctx context.Context, f func(ctx context.Context, store UnPostStore) error) error {
+func (g *GormStore) Transaction(ctx context.Context, f func(ctx context.Context, store UnstakStore) error) error {
 	return g.db.Transaction(func(tx *gorm.DB) error {
 		return f(ctx, NewGormStore(tx))
 	})

@@ -47,7 +47,6 @@ The user can create token for project which can be used to access the project re
 - [ ] create offline token with restricted permission to one space
 - [ ] list offline token
 - [ ] remove offline token
-- [ ] delete post
 - [ ] list post authors
 - [ ] add post author
 - [ ] remove post author

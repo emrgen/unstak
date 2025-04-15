@@ -12,7 +12,7 @@ import (
 )
 
 // NewPageService creates a new book service
-func NewPageService(cfg *authx.AuthbaseConfig, store store.UnPostStore, docClient docv1.DocumentServiceClient) *PageService {
+func NewPageService(cfg *authx.AuthbaseConfig, store store.UnstakStore, docClient docv1.DocumentServiceClient) *PageService {
 	return &PageService{
 		cfg:       cfg,
 		docClient: docClient,
@@ -24,7 +24,7 @@ var _ v1.PageServiceServer = new(PageService)
 
 type PageService struct {
 	cfg       *authx.AuthbaseConfig
-	store     store.UnPostStore
+	store     store.UnstakStore
 	docClient docv1.DocumentServiceClient
 	v1.UnimplementedPageServiceServer
 }
@@ -72,24 +72,25 @@ func (p *PageService) GetPage(ctx context.Context, request *v1.GetPageRequest) (
 	}
 
 	res, err := p.docClient.GetDocument(p.cfg.IntoContext(), &docv1.GetDocumentRequest{
-		Id: page.DocumentID,
+		DocumentId: page.DocumentID,
 	})
 	if err != nil {
 		return nil, err
 	}
 
 	doc := res.GetDocument()
+	// TODO: parse the doc.Meta field to get the title, summary, excerpt, and thumbnail
 	pageProto := &v1.Page{
 		Id:          page.ID,
 		CreatedById: page.CreatedByID,
 		Status:      postStatusToProto(page.Status),
-		Title:       doc.GetTitle(),
-		Summary:     doc.Summary,
-		Excerpt:     doc.Excerpt,
-		Thumbnail:   doc.Thumbnail,
-		Version:     doc.Version,
-		CreatedAt:   timestamppb.New(page.CreatedAt),
-		UpdatedAt:   timestamppb.New(page.UpdatedAt),
+		//Title:       doc.GetTitle(),
+		//Summary:     doc.Summary,
+		//Excerpt:     doc.Excerpt,
+		//Thumbnail:   doc.Thumbnail,
+		Version:   doc.Version,
+		CreatedAt: timestamppb.New(page.CreatedAt),
+		UpdatedAt: timestamppb.New(page.UpdatedAt),
 	}
 
 	return &v1.GetPageResponse{
@@ -115,7 +116,7 @@ func (p *PageService) AddPageTag(ctx context.Context, request *v1.AddPageTagRequ
 	pageID := uuid.MustParse(request.GetPageId())
 	tagID := uuid.MustParse(request.GetTagId())
 
-	err := p.store.Transaction(ctx, func(ctx context.Context, tx store.UnPostStore) error {
+	err := p.store.Transaction(ctx, func(ctx context.Context, tx store.UnstakStore) error {
 		post, err := tx.GetPost(ctx, pageID)
 		if err != nil {
 			return err
@@ -146,7 +147,7 @@ func (p *PageService) RemovePageTag(ctx context.Context, request *v1.RemovePageT
 	pageID := uuid.MustParse(request.GetPageId())
 	tagID := uuid.MustParse(request.GetTagId())
 
-	err := p.store.Transaction(ctx, func(ctx context.Context, tx store.UnPostStore) error {
+	err := p.store.Transaction(ctx, func(ctx context.Context, tx store.UnstakStore) error {
 		post, err := tx.GetPost(ctx, pageID)
 		if err != nil {
 			return err

@@ -16,7 +16,7 @@ func NewTierMemberService() v1.TierMemberServiceServer {
 var _ v1.TierMemberServiceServer = (*TierMemberService)(nil)
 
 type TierMemberService struct {
-	store store.UnPostStore
+	store store.UnstakStore
 	v1.UnimplementedTierMemberServiceServer
 }
 

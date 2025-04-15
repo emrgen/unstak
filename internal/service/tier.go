@@ -9,7 +9,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func NewTierService(store store.UnPostStore) v1.TierServiceServer {
+func NewTierService(store store.UnstakStore) v1.TierServiceServer {
 	return &TierService{
 		store: store,
 	}
@@ -18,7 +18,7 @@ func NewTierService(store store.UnPostStore) v1.TierServiceServer {
 var _ v1.TierServiceServer = (*TierService)(nil)
 
 type TierService struct {
-	store store.UnPostStore
+	store store.UnstakStore
 	v1.UnimplementedTierServiceServer
 }
 

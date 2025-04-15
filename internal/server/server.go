@@ -60,17 +60,12 @@ func Start(grpcPort, httpPort string) error {
 		return err
 	}
 
-	//tinyConn, err := grpc.NewClient(":4010", grpc.WithTransportCredentials(insecure.NewCredentials()))
-	//defer tinyConn.Close()
-	//// tinyClient provides the membership service
-	//tinyClient := tinysv1.NewMembershipServiceClient(tinyConn)
-
-	// tinyClient provides the membership service
+	// authClient provides the auth service
 	authClient, err := authbase.NewClient("4000")
 
 	docConn, err := grpc.NewClient(":4020", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	defer docConn.Close()
-	// tinyClient provides the membership service
+	// docClient provides the document service
 	docClient := docv1.NewDocumentServiceClient(docConn)
 
 	grpcServer := grpc.NewServer(

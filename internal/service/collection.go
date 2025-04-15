@@ -10,7 +10,7 @@ import (
 )
 
 // NewCollectionService creates a new collection service
-func NewCollectionService(store store.UnPostStore) *CollectionService {
+func NewCollectionService(store store.UnstakStore) *CollectionService {
 	return &CollectionService{
 		store: store,
 	}
@@ -20,7 +20,7 @@ var _ v1.CollectionServiceServer = new(CollectionService)
 
 // CollectionService is the service that provides collection operations
 type CollectionService struct {
-	store store.UnPostStore
+	store store.UnstakStore
 	v1.UnimplementedCollectionServiceServer
 }
 
@@ -118,7 +118,7 @@ func (c *CollectionService) DeleteCollection(ctx context.Context, request *v1.De
 func (c *CollectionService) AddCollectionTag(ctx context.Context, request *v1.AddCollectionTagRequest) (*v1.AddCollectionTagResponse, error) {
 	collectionID := uuid.MustParse(request.GetCollectionId())
 	tagID := uuid.MustParse(request.GetTagId())
-	err := c.store.Transaction(ctx, func(ctx context.Context, tx store.UnPostStore) error {
+	err := c.store.Transaction(ctx, func(ctx context.Context, tx store.UnstakStore) error {
 		_, err := tx.GetCollection(ctx, collectionID)
 		if err != nil {
 			return err
@@ -151,7 +151,7 @@ func (c *CollectionService) AddCollectionTag(ctx context.Context, request *v1.Ad
 func (c *CollectionService) RemoveCollectionTag(ctx context.Context, request *v1.RemoveCollectionTagRequest) (*v1.RemoveCollectionTagResponse, error) {
 	collectionID := uuid.MustParse(request.GetCollectionId())
 	tagID := uuid.MustParse(request.GetTagId())
-	err := c.store.Transaction(ctx, func(ctx context.Context, tx store.UnPostStore) error {
+	err := c.store.Transaction(ctx, func(ctx context.Context, tx store.UnstakStore) error {
 		_, err := tx.GetCollection(ctx, collectionID)
 		if err != nil {
 			return err

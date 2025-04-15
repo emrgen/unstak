@@ -10,7 +10,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func NewCourseService(cfg *authx.AuthbaseConfig, store store.UnPostStore, docClient docv1.DocumentServiceClient) *CourseService {
+func NewCourseService(cfg *authx.AuthbaseConfig, store store.UnstakStore, docClient docv1.DocumentServiceClient) *CourseService {
 	return &CourseService{
 		cfg:       cfg,
 		store:     store,
@@ -22,7 +22,7 @@ var _ v1.CourseServiceServer = new(CourseService)
 
 type CourseService struct {
 	cfg       *authx.AuthbaseConfig
-	store     store.UnPostStore
+	store     store.UnstakStore
 	docClient docv1.DocumentServiceClient
 	v1.UnimplementedCourseServiceServer
 }
@@ -70,7 +70,7 @@ func (c *CourseService) GetCourse(ctx context.Context, request *v1.GetCourseRequ
 	}
 
 	res, err := c.docClient.GetDocument(c.cfg.IntoContext(), &docv1.GetDocumentRequest{
-		Id: course.DocumentID,
+		DocumentId: course.DocumentID,
 	})
 	if err != nil {
 		return nil, err
@@ -78,15 +78,15 @@ func (c *CourseService) GetCourse(ctx context.Context, request *v1.GetCourseRequ
 
 	doc := res.GetDocument()
 	page := &v1.Page{
-		Id:        course.ID,
-		Title:     doc.GetTitle(),
-		Content:   doc.GetContent(),
-		Summary:   doc.GetSummary(),
-		Excerpt:   doc.GetExcerpt(),
-		Thumbnail: doc.GetThumbnail(),
-		Tags:      make([]*v1.Tag, 0),
-		Version:   doc.GetVersion(),
-		Status:    postStatusToProto(course.Status),
+		Id: course.ID,
+		//Title:     doc.GetTitle(),
+		Content: doc.GetContent(),
+		//Summary:   doc.GetSummary(),
+		//Excerpt:   doc.GetExcerpt(),
+		//Thumbnail: doc.GetThumbnail(),
+		Tags:    make([]*v1.Tag, 0),
+		Version: doc.GetVersion(),
+		Status:  postStatusToProto(course.Status),
 	}
 
 	courseProto := &v1.Course{
@@ -135,7 +135,7 @@ func (c *CourseService) AddCourseTag(ctx context.Context, request *v1.AddCourseT
 	courseID := uuid.MustParse(request.GetCourseId())
 	tagID := uuid.MustParse(request.GetTagId())
 
-	err := c.store.Transaction(ctx, func(ctx context.Context, tx store.UnPostStore) error {
+	err := c.store.Transaction(ctx, func(ctx context.Context, tx store.UnstakStore) error {
 		course, err := tx.GetCourse(ctx, courseID)
 		if err != nil {
 			return err
@@ -166,7 +166,7 @@ func (c *CourseService) RemoveCourseTag(ctx context.Context, request *v1.RemoveC
 	courseID := uuid.MustParse(request.GetCourseId())
 	tagID := uuid.MustParse(request.GetTagId())
 
-	err := c.store.Transaction(ctx, func(ctx context.Context, tx store.UnPostStore) error {
+	err := c.store.Transaction(ctx, func(ctx context.Context, tx store.UnstakStore) error {
 		course, err := tx.GetCourse(ctx, courseID)
 		if err != nil {
 			return err

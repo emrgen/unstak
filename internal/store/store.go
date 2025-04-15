@@ -12,7 +12,7 @@ var (
 	ErrUserNotFound = errors.New("user not found")
 )
 
-type UnPostStore interface {
+type UnstakStore interface {
 	UserStore
 	TierStore
 	PostStore
@@ -24,7 +24,7 @@ type UnPostStore interface {
 	PlatformTagStore
 	SpaceStore
 	SpaceMemberStore
-	Transaction(ctx context.Context, f func(ctx context.Context, store UnPostStore) error) error
+	Transaction(ctx context.Context, f func(ctx context.Context, store UnstakStore) error) error
 	Migrate() error
 }
 

@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	mapset "github.com/deckarep/golang-set/v2"
 	"github.com/emrgen/authbase"
@@ -17,7 +18,7 @@ import (
 )
 
 // NewPostService creates a new post service
-func NewPostService(cfg *authx.AuthbaseConfig, store store.UnPostStore, docClient docv1.DocumentServiceClient, authClient authbase.Client) *PostService {
+func NewPostService(cfg *authx.AuthbaseConfig, store store.UnstakStore, docClient docv1.DocumentServiceClient, authClient authbase.Client) *PostService {
 	return &PostService{
 		cfg:        cfg,
 		store:      store,
@@ -31,7 +32,7 @@ var _ v1.PostServiceServer = new(PostService)
 // PostService is the service that provides post operations
 type PostService struct {
 	cfg        *authx.AuthbaseConfig
-	store      store.UnPostStore
+	store      store.UnstakStore
 	docClient  docv1.DocumentServiceClient
 	authClient authbase.Client
 	v1.UnimplementedPostServiceServer
@@ -56,7 +57,6 @@ func (p *PostService) CreatePost(ctx context.Context, request *v1.CreatePostRequ
 	// create a document in the document service
 	doc, err := p.docClient.CreateDocument(ctx, &docv1.CreateDocumentRequest{
 		ProjectId: poolID.String(),
-		Title:     request.GetTitle(),
 		Content:   request.GetContent(),
 	})
 	if err != nil {
@@ -74,7 +74,7 @@ func (p *PostService) CreatePost(ctx context.Context, request *v1.CreatePostRequ
 	}
 
 	// get user default space-id if no space-id is provided
-	err = p.store.Transaction(ctx, func(ctx context.Context, tx store.UnPostStore) error {
+	err = p.store.Transaction(ctx, func(ctx context.Context, tx store.UnstakStore) error {
 		err = tx.CreatePost(ctx, post)
 		if err != nil {
 			return err
@@ -96,7 +96,6 @@ func (p *PostService) CreatePost(ctx context.Context, request *v1.CreatePostRequ
 	return &v1.CreatePostResponse{
 		Post: &v1.Post{
 			Id:        post.ID,
-			Title:     doc.GetDocument().GetTitle(),
 			CreatedAt: timestamppb.New(post.CreatedAt),
 			UpdatedAt: timestamppb.New(post.UpdatedAt),
 		},
@@ -110,7 +109,7 @@ func (p *PostService) GetPost(ctx context.Context, request *v1.GetPostRequest) (
 	}
 
 	res, err := p.docClient.GetDocument(p.cfg.IntoContext(), &docv1.GetDocumentRequest{
-		Id: post.DocumentID,
+		DocumentId: post.DocumentID,
 	})
 	if err != nil {
 		return nil, err
@@ -141,16 +140,13 @@ func (p *PostService) GetPost(ctx context.Context, request *v1.GetPostRequest) (
 
 	doc := res.GetDocument()
 	postProto := &v1.Post{
-		Id:        post.ID,
-		Title:     doc.GetTitle(),
-		Content:   doc.GetContent(),
-		Summary:   doc.GetSummary(),
-		Excerpt:   doc.GetExcerpt(),
-		Thumbnail: doc.GetThumbnail(),
-		Tags:      make([]*v1.Tag, 0),
-		Authors:   authors,
-		Version:   doc.GetVersion(),
-		Status:    postStatusToProto(post.Status),
+		Id:      post.ID,
+		Content: doc.GetContent(),
+		Tags:    make([]*v1.Tag, 0),
+		//TODO: return main author
+		//MainAuthor:
+		Version: doc.GetVersion(),
+		Status:  postStatusToProto(post.Status),
 	}
 
 	for _, tag := range post.Tags {
@@ -231,19 +227,19 @@ func (p *PostService) ListPost(ctx context.Context, request *v1.ListPostRequest)
 			continue
 		}
 		postProto := &v1.Post{
-			Id:        post.ID,
-			Status:    postStatusToProto(post.Status),
-			Title:     doc.GetTitle(),
-			Summary:   doc.Summary,
-			Excerpt:   doc.Excerpt,
-			Thumbnail: doc.Thumbnail,
+			Id:     post.ID,
+			Status: postStatusToProto(post.Status),
+			//Title:     doc.GetTitle(),
+			//Summary:   doc.Summary,
+			//Excerpt:   doc.Excerpt,
+			//Thumbnail: doc.Thumbnail,
 			Version:   doc.Version,
 			CreatedAt: timestamppb.New(post.CreatedAt),
 			UpdatedAt: timestamppb.New(post.UpdatedAt),
 		}
 		responsePosts = append(responsePosts, postProto)
 		if user, ok := users[post.CreatedByID]; ok {
-			postProto.OriginalAuthor = &v1.User{
+			postProto.MainAuthor = &v1.User{
 				Id:    user.Id,
 				Name:  user.Username,
 				Email: user.Email,
@@ -257,7 +253,7 @@ func (p *PostService) ListPost(ctx context.Context, request *v1.ListPostRequest)
 }
 
 func (p *PostService) UpdatePost(ctx context.Context, request *v1.UpdatePostRequest) (*v1.UpdatePostResponse, error) {
-	err := p.store.Transaction(ctx, func(ctx context.Context, tx store.UnPostStore) error {
+	err := p.store.Transaction(ctx, func(ctx context.Context, tx store.UnstakStore) error {
 		post, err := tx.GetPost(ctx, uuid.MustParse(request.GetId()))
 		if err != nil {
 			return err
@@ -265,14 +261,23 @@ func (p *PostService) UpdatePost(ctx context.Context, request *v1.UpdatePostRequ
 
 		logrus.Infof("updating post %d", request.GetVersion())
 
+		meta := make(map[string]string)
+		meta["Title"] = request.GetTitle()
+		meta["Summary"] = request.GetSummary()
+		meta["Excerpt"] = request.GetExcerpt()
+		meta["Thumbnail"] = request.GetThumbnail()
+		// meta string
+		marshal, err := json.Marshal(meta)
+		if err != nil {
+			return err
+		}
+		metaStr := string(marshal)
+
 		_, err = p.docClient.UpdateDocument(p.cfg.IntoContext(), &docv1.UpdateDocumentRequest{
-			Id:        post.DocumentID,
-			Title:     request.Title,
-			Content:   request.Content,
-			Summary:   request.Summary,
-			Excerpt:   request.Excerpt,
-			Thumbnail: request.Thumbnail,
-			Version:   request.GetVersion(),
+			DocumentId: post.DocumentID,
+			Content:    request.Content,
+			Meta:       &metaStr,
+			Version:    request.GetVersion(),
 		})
 		if err != nil {
 			return err
@@ -305,7 +310,7 @@ func (p *PostService) AddPostTag(ctx context.Context, request *v1.AddPostTagRequ
 	postID := uuid.MustParse(request.GetPostId())
 	tagID := uuid.MustParse(request.GetTagId())
 
-	err := p.store.Transaction(ctx, func(ctx context.Context, tx store.UnPostStore) error {
+	err := p.store.Transaction(ctx, func(ctx context.Context, tx store.UnstakStore) error {
 		post, err := tx.GetPost(ctx, postID)
 		if err != nil {
 			return err
@@ -338,7 +343,7 @@ func (p *PostService) AddPostTag(ctx context.Context, request *v1.AddPostTagRequ
 
 func (p *PostService) RemovePostTag(ctx context.Context, request *v1.RemovePostTagRequest) (*v1.RemovePostTagResponse, error) {
 	tags := make([]*v1.Tag, 0)
-	err := p.store.Transaction(ctx, func(ctx context.Context, tx store.UnPostStore) error {
+	err := p.store.Transaction(ctx, func(ctx context.Context, tx store.UnstakStore) error {
 		postID := uuid.MustParse(request.GetPostId())
 		tagID := uuid.MustParse(request.GetTagId())
 		post, err := tx.GetPost(ctx, postID)
@@ -397,7 +402,7 @@ func (p *PostService) UpdatePostReaction(ctx context.Context, request *v1.Update
 		return nil, err
 	}
 
-	err = p.store.Transaction(ctx, func(ctx context.Context, tx store.UnPostStore) error {
+	err = p.store.Transaction(ctx, func(ctx context.Context, tx store.UnstakStore) error {
 		_, err := tx.GetPost(ctx, uuid.MustParse(request.GetPostId()))
 		if err != nil {
 			return err
@@ -431,7 +436,7 @@ func (p *PostService) UpdatePostReaction(ctx context.Context, request *v1.Update
 
 func (p *PostService) UpdatePostStatus(ctx context.Context, request *v1.UpdatePostStatusRequest) (*v1.UpdatePostStatusResponse, error) {
 	postID := uuid.MustParse(request.GetPostId())
-	err := p.store.Transaction(ctx, func(ctx context.Context, tx store.UnPostStore) error {
+	err := p.store.Transaction(ctx, func(ctx context.Context, tx store.UnstakStore) error {
 		post, err := tx.GetPost(ctx, postID)
 		if err != nil {
 			return err

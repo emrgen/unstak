@@ -15,7 +15,7 @@ import (
 )
 
 // NewSpaceService creates a new space service
-func NewSpaceService(cfg *authx.AuthbaseConfig, store store.UnPostStore, authClient authbase.Client) *SpaceService {
+func NewSpaceService(cfg *authx.AuthbaseConfig, store store.UnstakStore, authClient authbase.Client) *SpaceService {
 	return &SpaceService{cfg: cfg, store: store, authClient: authClient}
 }
 
@@ -23,7 +23,7 @@ var _ v1.SpaceServiceServer = (*SpaceService)(nil)
 
 type SpaceService struct {
 	cfg        *authx.AuthbaseConfig
-	store      store.UnPostStore
+	store      store.UnstakStore
 	authClient authbase.Client
 	v1.UnimplementedSpaceServiceServer
 }
@@ -78,7 +78,7 @@ func (s *SpaceService) CreateSpace(ctx context.Context, request *v1.CreateSpaceR
 		Role:    model.UserRoleOwner,
 	}
 
-	err = s.store.Transaction(ctx, func(ctx context.Context, tx store.UnPostStore) error {
+	err = s.store.Transaction(ctx, func(ctx context.Context, tx store.UnstakStore) error {
 		if err := tx.CreateSpace(ctx, space); err != nil {
 			return err
 		}
