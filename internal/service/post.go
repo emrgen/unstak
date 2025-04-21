@@ -65,8 +65,13 @@ func (p *PostService) CreatePost(ctx context.Context, request *v1.CreatePostRequ
 
 	logrus.Infof("created document %s", doc.GetDocument().GetId())
 
+	postID := uuid.New().String()
+	if request.PostId != nil {
+		postID = request.GetPostId()
+	}
+
 	post := &model.Post{
-		ID:          uuid.New().String(),
+		ID:          postID,
 		SpaceID:     request.GetSpaceId(),
 		CreatedByID: userID.String(),
 		DocumentID:  doc.GetDocument().GetId(),

@@ -254,9 +254,10 @@ message Post {
 }
 
 message CreatePostRequest {
-  string space_id = 1 [(validate.rules).string.uuid = true];
-  string title = 2;
-  string content = 3;
+  optional string post_id = 1 [(validate.rules).string.uuid = true];
+  string space_id = 2 [(validate.rules).string.uuid = true];
+  string title = 3;
+  string content = 4;
 }
 
 message CreatePostResponse {
