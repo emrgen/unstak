@@ -15,7 +15,8 @@ func VerifyTokenInterceptor(keyProvider authx.VerifierProvider, authClient authv
 	interceptor := authx.VerifyTokenInterceptor(authx.NewUnverifiedKeyProvider(), authClient)
 	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp any, err error) {
 		switch info.FullMethod {
-		case v1.AccountService_LoginUsingPassword_FullMethodName:
+		case v1.AccountService_LoginUsingPassword_FullMethodName,
+			v1.AccountService_CreateAccount_FullMethodName:
 			return handler(ctx, req)
 		default:
 			return interceptor(ctx, req, info, handler)
