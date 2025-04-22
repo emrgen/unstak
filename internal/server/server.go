@@ -26,6 +26,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/protobuf/encoding/protojson"
+	"gorm.io/gorm"
 	"net"
 	"net/http"
 	"os"
@@ -118,13 +119,6 @@ func Start(grpcPort, httpPort string) error {
 	// create master space and the owner user
 	// create owner user
 	spaceID := uuid.New().String()
-	err = unpostStore.CreateUser(context.TODO(), &model.User{
-		ID:      claims.AccountID,
-		SpaceID: spaceID,
-	})
-	if err != nil {
-		return err
-	}
 
 	space := &model.Space{
 		ID:                spaceID,
@@ -135,14 +129,16 @@ func Start(grpcPort, httpPort string) error {
 		Private:           false,
 	}
 
-	err = unpostStore.Transaction(context.TODO(), func(ctx context.Context, tx store.UnstakStore) error {
-		oldSpace, err := tx.GetSpaceByName(ctx, space.Name)
-		if err != nil {
-			return err
-		}
+	oldSpace, err := unpostStore.GetSpaceByName(context.TODO(), space.Name)
+	logrus.Info("old space: %v", err)
+	if !errors.Is(err, gorm.ErrRecordNotFound) && err != nil {
+		return err
+	}
 
+	err = unpostStore.Transaction(context.TODO(), func(ctx context.Context, tx store.UnstakStore) error {
 		// if the space does not exist, create it along with the owner user
 		if oldSpace == nil {
+			logrus.Info("creating master space: %v", err)
 			// create master space
 			err = unpostStore.CreateSpace(context.TODO(), space)
 			if err != nil && !strings.Contains(err.Error(), "UNIQUE constraint failed: spaces.name") {

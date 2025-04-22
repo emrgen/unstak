@@ -22,7 +22,6 @@ type Post struct {
 	Status       PostStatus     `gorm:"not null;default:draft"`
 	Tags         []*Tag         `gorm:"many2many:post_tags;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 	PlatformTags []*PlatformTag `gorm:"many2many:post_platform_tags;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
-	Authors      []*User        `gorm:"many2many:post_authors;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 }
 
 // PostReaction is a map of reaction names to their counts

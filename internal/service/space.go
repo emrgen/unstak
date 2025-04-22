@@ -12,6 +12,7 @@ import (
 	"github.com/emrgen/unpost/internal/store"
 	"github.com/emrgen/unpost/internal/x"
 	"github.com/google/uuid"
+	"github.com/sirupsen/logrus"
 )
 
 // NewSpaceService creates a new space service
@@ -29,18 +30,9 @@ type SpaceService struct {
 }
 
 func (s *SpaceService) CreateSpace(ctx context.Context, request *v1.CreateSpaceRequest) (*v1.CreateSpaceResponse, error) {
-	userID, err := authx.GetAuthbaseAccountID(ctx)
+	accountID, err := authx.GetAuthbaseAccountID(ctx)
 	if err != nil {
 		return nil, err
-	}
-
-	user, err := s.store.GetUser(ctx, userID)
-	if err != nil {
-		return nil, err
-	}
-
-	if !user.Space.Master {
-		return nil, errors.New("only user of master space can create a new space")
 	}
 
 	var poolID = uuid.Nil
@@ -64,7 +56,7 @@ func (s *SpaceService) CreateSpace(ctx context.Context, request *v1.CreateSpaceR
 	space := &model.Space{
 		ID:      uuid.New().String(),
 		Name:    request.GetName(),
-		OwnerID: userID.String(),
+		OwnerID: accountID.String(),
 		Private: request.GetPrivate(),
 	}
 
@@ -74,7 +66,7 @@ func (s *SpaceService) CreateSpace(ctx context.Context, request *v1.CreateSpaceR
 
 	member := &model.SpaceMember{
 		SpaceID: space.ID,
-		UserID:  userID.String(),
+		UserID:  accountID.String(),
 		Role:    model.UserRoleOwner,
 	}
 
@@ -111,12 +103,23 @@ func (s *SpaceService) ListSpace(ctx context.Context, request *v1.ListSpaceReque
 	if err != nil {
 		return nil, err
 	}
+
+	masterSpace, err := s.store.GetMasterSpace(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	logrus.Infof("accountID: %s", accountID.String())
 	spaces, err := s.store.ListSpaces(ctx, accountID)
 	if err != nil {
 		return nil, err
 	}
 
 	var res []*v1.Space
+	res = append(res, &v1.Space{
+		Id:   masterSpace.ID,
+		Name: masterSpace.Name,
+	})
 	for _, space := range spaces {
 		res = append(res, &v1.Space{
 			Id:   space.ID,

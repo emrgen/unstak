@@ -2,18 +2,12 @@ package store
 
 import (
 	"context"
-	"errors"
 	"github.com/google/uuid"
 
 	"github.com/emrgen/unpost/internal/model"
 )
 
-var (
-	ErrUserNotFound = errors.New("user not found")
-)
-
 type UnstakStore interface {
-	UserStore
 	TierStore
 	PostStore
 	TierMemberStore
@@ -26,13 +20,6 @@ type UnstakStore interface {
 	SpaceMemberStore
 	Transaction(ctx context.Context, f func(ctx context.Context, store UnstakStore) error) error
 	Migrate() error
-}
-
-type UserStore interface {
-	// CreateUser creates a new user.
-	CreateUser(ctx context.Context, user *model.User) error
-	//	 GetUser retrieves a user by ID.
-	GetUser(ctx context.Context, userID uuid.UUID) (*model.User, error)
 }
 
 type TierStore interface {
@@ -162,6 +149,8 @@ type PlatformTagStore interface {
 type SpaceStore interface {
 	// CreateSpace creates a new space.
 	CreateSpace(ctx context.Context, space *model.Space) error
+	// GetMasterSpace retrieves the master space.
+	GetMasterSpace(ctx context.Context) (*model.Space, error)
 	// GetSpaceByName retrieves a space by name.
 	GetSpaceByName(ctx context.Context, spaceName string) (*model.Space, error)
 	// GetSpace retrieves a space by ID.

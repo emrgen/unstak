@@ -2,11 +2,9 @@ package store
 
 import (
 	"context"
-	"errors"
 	"github.com/emrgen/unpost/internal/model"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
-	"gorm.io/gorm/clause"
 )
 
 // NewGormStore creates a new GormStore.
@@ -39,23 +37,6 @@ func (g *GormStore) ListPostBySpace(ctx context.Context, spaceID uuid.UUID, stat
 	}
 
 	return posts, nil
-}
-
-func (g *GormStore) CreateUser(ctx context.Context, user *model.User) error {
-	return g.db.Clauses(clause.OnConflict{
-		Columns:   []clause.Column{{Name: "id"}},
-		DoNothing: true,
-	}).Create(user).Error
-}
-
-func (g *GormStore) GetUser(ctx context.Context, id uuid.UUID) (*model.User, error) {
-	var user model.User
-	err := g.db.Where("id = ?", id.String()).Preload("Space").First(&user).Error
-	if errors.Is(err, gorm.ErrRecordNotFound) || &user == nil {
-		return nil, ErrUserNotFound
-	}
-
-	return &user, err
 }
 
 func (g *GormStore) CreatePlatformTag(ctx context.Context, tag *model.PlatformTag) error {
@@ -95,6 +76,15 @@ func (g *GormStore) CreateSpace(ctx context.Context, space *model.Space) error {
 func (g *GormStore) GetSpace(ctx context.Context, spaceID uuid.UUID) (*model.Space, error) {
 	var space model.Space
 	if err := g.db.Where("id = ?", spaceID.String()).First(&space).Error; err != nil {
+		return nil, err
+	}
+
+	return &space, nil
+}
+
+func (g *GormStore) GetMasterSpace(ctx context.Context) (*model.Space, error) {
+	var space model.Space
+	if err := g.db.Where("master = true").First(&space).Error; err != nil {
 		return nil, err
 	}
 

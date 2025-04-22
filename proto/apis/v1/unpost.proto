@@ -9,7 +9,6 @@ import "protoc-gen-openapiv2/options/annotations.proto";
 import "validate/validate.proto";
 
 option go_package = "github.com/emrgen/unpost/proto/v1";
-
 option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
   security_definitions: {
     security: {
@@ -185,14 +184,32 @@ service SpaceService {
       post: "/v1/spaces"
       body: "*"
     };
+
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      security: {
+        security_requirement: {key: "OAuth2PasswordBearer"}
+      }
+    };
   }
 
   rpc GetSpace(GetSpaceRequest) returns (GetSpaceResponse) {
     option (google.api.http) = {get: "/v1/spaces/{id}"};
+
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      security: {
+        security_requirement: {key: "OAuth2PasswordBearer"}
+      }
+    };
   }
 
   rpc ListSpace(ListSpaceRequest) returns (ListSpaceResponse) {
     option (google.api.http) = {get: "/v1/spaces"};
+
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      security: {
+        security_requirement: {key: "OAuth2PasswordBearer"}
+      }
+    };
   }
 
   rpc UpdateSpace(UpdateSpaceRequest) returns (UpdateSpaceResponse) {
@@ -200,10 +217,22 @@ service SpaceService {
       put: "/v1/spaces/{id}"
       body: "*"
     };
+
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      security: {
+        security_requirement: {key: "OAuth2PasswordBearer"}
+      }
+    };
   }
 
   rpc DeleteSpace(DeleteSpaceRequest) returns (DeleteSpaceResponse) {
     option (google.api.http) = {delete: "/v1/spaces/{id}"};
+
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      security: {
+        security_requirement: {key: "OAuth2PasswordBearer"}
+      }
+    };
   }
 }
 
@@ -347,7 +376,7 @@ message ListPostRequest {
   optional string space_id = 1 [(validate.rules).string.uuid = true];
   optional PostStatus status = 4;
   int32 page = 10;
-  int32 per_page =11;
+  int32 per_page = 11;
 }
 
 message ListPostResponse {
@@ -355,14 +384,15 @@ message ListPostResponse {
 }
 
 message UpdatePostRequest {
-  string id = 1 [(validate.rules).string.uuid = true];
+  string post_id = 1 [(validate.rules).string.uuid = true];
   optional string title = 2;
   optional string content = 3;
   optional string thumbnail = 4;
   optional string summary = 5;
   optional string excerpt = 6;
   optional string status = 7;
-  int64 version = 8;
+  optional string authors = 8;
+  int64 version = 10;
 }
 
 message UpdatePostResponse {
@@ -421,44 +451,92 @@ service PostService {
       post: "/v1/posts"
       body: "*"
     };
+
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      security: {
+        security_requirement: {key: "OAuth2PasswordBearer"}
+      }
+    };
   }
 
   // GetPost
   rpc GetPost(GetPostRequest) returns (GetPostResponse) {
     option (google.api.http) = {get: "/v1/posts/{id}"};
+
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      security: {
+        security_requirement: {key: "OAuth2PasswordBearer"}
+      }
+    };
   }
 
   // GetPostBySlag
   rpc GetPostBySlag(GetPostBySlagRequest) returns (GetPostBySlagResponse) {
     option (google.api.http) = {get: "/v1/posts/slag/{slag}"};
+
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      security: {
+        security_requirement: {key: "OAuth2PasswordBearer"}
+      }
+    };
   }
 
   // ListPost
   rpc ListPost(ListPostRequest) returns (ListPostResponse) {
     option (google.api.http) = {get: "/v1/posts"};
+
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      security: {
+        security_requirement: {key: "OAuth2PasswordBearer"}
+      }
+    };
   }
 
   // UpdatePost
   rpc UpdatePost(UpdatePostRequest) returns (UpdatePostResponse) {
     option (google.api.http) = {
-      put: "/v1/posts/{id}"
+      put: "/v1/posts/{post_id}"
       body: "*"
+    };
+
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      security: {
+        security_requirement: {key: "OAuth2PasswordBearer"}
+      }
     };
   }
 
   // DeletePost
   rpc DeletePost(DeletePostRequest) returns (DeletePostResponse) {
     option (google.api.http) = {delete: "/v1/posts/{id}"};
+
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      security: {
+        security_requirement: {key: "OAuth2PasswordBearer"}
+      }
+    };
   }
 
   // AddPostTag
   rpc AddPostTag(AddPostTagRequest) returns (AddPostTagResponse) {
     option (google.api.http) = {post: "/v1/posts/{post_id}/tags/{tag_id}"};
+
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      security: {
+        security_requirement: {key: "OAuth2PasswordBearer"}
+      }
+    };
   }
 
   // RemovePostTag
   rpc RemovePostTag(RemovePostTagRequest) returns (RemovePostTagResponse) {
     option (google.api.http) = {delete: "/v1/posts/{post_id}/tags/{tag_id}"};
+
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      security: {
+        security_requirement: {key: "OAuth2PasswordBearer"}
+      }
+    };
   }
 
   // UpdatePostReaction
@@ -467,6 +545,12 @@ service PostService {
       put: "/v1/posts/{post_id}/reaction"
       body: "*"
     };
+
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      security: {
+        security_requirement: {key: "OAuth2PasswordBearer"}
+      }
+    };
   }
 
   // UpdatePostStatus
@@ -474,6 +558,12 @@ service PostService {
     option (google.api.http) = {
       put: "/v1/posts/{post_id}/status"
       body: "*"
+    };
+
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      security: {
+        security_requirement: {key: "OAuth2PasswordBearer"}
+      }
     };
   }
 }
@@ -582,7 +672,6 @@ service CollectionService {
   rpc DeleteCollection(DeleteCollectionRequest) returns (DeleteCollectionResponse) {
     option (google.api.http) = {delete: "/v1/collections/{id}"};
   }
-
 
   rpc AddCollectionTag(AddCollectionTagRequest) returns (AddCollectionTagResponse) {
     option (google.api.http) = {post: "/v1/collections/{collection_id}/tags/{tag_id}"};
@@ -1008,7 +1097,6 @@ service TierService {
   rpc DeleteTier(DeleteTierRequest) returns (DeleteTierResponse) {
     option (google.api.http) = {delete: "/v1/tiers/{id}"};
   }
-
 }
 
 message TierMember {

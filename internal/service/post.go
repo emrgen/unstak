@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	mapset "github.com/deckarep/golang-set/v2"
 	"github.com/emrgen/authbase"
 	authv1 "github.com/emrgen/authbase/apis/v1"
@@ -44,23 +45,25 @@ func (p *PostService) CreatePost(ctx context.Context, request *v1.CreatePostRequ
 	if err != nil {
 		return nil, err
 	}
-	userID, err := authx.GetAuthbaseAccountID(ctx)
+	accountID, err := authx.GetAuthbaseAccountID(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	user, err := p.store.GetUser(ctx, userID)
-	if err != nil {
-		return nil, err
+	docID := uuid.New().String()
+	if request.GetPostId() != "" {
+		docID = request.GetPostId()
 	}
 
 	req := &docv1.CreateDocumentRequest{
-		ProjectId: poolID.String(),
-		Content:   request.GetContent(),
+		DocumentId: &docID,
+		ProjectId:  poolID.String(),
+		Content:    request.GetContent(),
 	}
 
 	meta := map[string]string{
-		"title": request.GetTitle(),
+		"title":   request.GetTitle(),
+		"authors": fmt.Sprintf("%d", accountID),
 	}
 	metaData, err := json.Marshal(meta)
 	if err != nil {
@@ -84,9 +87,8 @@ func (p *PostService) CreatePost(ctx context.Context, request *v1.CreatePostRequ
 	post := &model.Post{
 		ID:          postID,
 		SpaceID:     request.GetSpaceId(),
-		CreatedByID: userID.String(),
+		CreatedByID: accountID.String(),
 		DocumentID:  doc.GetDocument().GetId(),
-		Authors:     []*model.User{user},
 	}
 
 	// get user default space-id if no space-id is provided
@@ -114,6 +116,7 @@ func (p *PostService) CreatePost(ctx context.Context, request *v1.CreatePostRequ
 			Id:        post.ID,
 			CreatedAt: timestamppb.New(post.CreatedAt),
 			UpdatedAt: timestamppb.New(post.UpdatedAt),
+			Version:   doc.GetDocument().GetVersion(),
 		},
 	}, nil
 }
@@ -242,13 +245,17 @@ func (p *PostService) ListPost(ctx context.Context, request *v1.ListPostRequest)
 	}
 
 	users := make(map[string]*authv1.Account)
-	//if res, err := p.authClient.ListUsers(ctx, &authv1.ListUsersRequest{}); err != nil {
-	//	return nil, err
-	//} else {
-	//	for _, user := range res.GetUsers() {
-	//		users[user.Id] = user
-	//	}
-	//}
+	poolId := poolID.String()
+	if res, err := p.authClient.ListAccounts(p.cfg.IntoContext(), &authv1.ListAccountsRequest{
+		PoolId:     &poolId,
+		AccountIds: userIDs.ToSlice(),
+	}); err != nil {
+		return nil, err
+	} else {
+		for _, user := range res.GetAccounts() {
+			users[user.Id] = user
+		}
+	}
 
 	var responsePosts []*v1.Post
 	for _, post := range posts {
@@ -256,10 +263,20 @@ func (p *PostService) ListPost(ctx context.Context, request *v1.ListPostRequest)
 		if !ok {
 			continue
 		}
+		meta := map[string]string{}
+		err = json.Unmarshal([]byte(doc.GetMeta()), &meta)
+		if err != nil {
+			return nil, err
+		}
+		title := ""
+		if t, ok := meta["title"]; ok {
+			title = t
+		}
+
 		postProto := &v1.Post{
 			Id:     post.ID,
 			Status: postStatusToProto(post.Status),
-			//Title:     doc.GetTitle(),
+			Title:  title,
 			//Summary:   doc.Summary,
 			//Excerpt:   doc.Excerpt,
 			//Thumbnail: doc.Thumbnail,
@@ -283,38 +300,25 @@ func (p *PostService) ListPost(ctx context.Context, request *v1.ListPostRequest)
 }
 
 func (p *PostService) UpdatePost(ctx context.Context, request *v1.UpdatePostRequest) (*v1.UpdatePostResponse, error) {
-	err := p.store.Transaction(ctx, func(ctx context.Context, tx store.UnstakStore) error {
-		post, err := tx.GetPost(ctx, uuid.MustParse(request.GetId()))
-		if err != nil {
-			return err
-		}
+	meta := make(map[string]string)
+	meta["title"] = request.GetTitle()
+	meta["summary"] = request.GetSummary()
+	meta["excerpt"] = request.GetExcerpt()
+	meta["thumbnail"] = request.GetThumbnail()
+	meta["authors"] = request.GetAuthors()
 
-		logrus.Infof("updating post %d", request.GetVersion())
+	// meta string
+	marshal, err := json.Marshal(meta)
+	if err != nil {
+		return nil, err
+	}
+	metaStr := string(marshal)
 
-		meta := make(map[string]string)
-		meta["title"] = request.GetTitle()
-		meta["summary"] = request.GetSummary()
-		meta["excerpt"] = request.GetExcerpt()
-		meta["thumbnail"] = request.GetThumbnail()
-
-		// meta string
-		marshal, err := json.Marshal(meta)
-		if err != nil {
-			return err
-		}
-		metaStr := string(marshal)
-
-		_, err = p.docClient.UpdateDocument(p.cfg.IntoContext(), &docv1.UpdateDocumentRequest{
-			DocumentId: post.DocumentID,
-			Content:    request.Content,
-			Meta:       &metaStr,
-			Version:    request.GetVersion(),
-		})
-		if err != nil {
-			return err
-		}
-
-		return nil
+	_, err = p.docClient.UpdateDocument(p.cfg.IntoContext(), &docv1.UpdateDocumentRequest{
+		DocumentId: request.GetPostId(),
+		Content:    request.Content,
+		Meta:       &metaStr,
+		Version:    request.GetVersion(),
 	})
 	if err != nil {
 		return nil, err
@@ -322,7 +326,7 @@ func (p *PostService) UpdatePost(ctx context.Context, request *v1.UpdatePostRequ
 
 	return &v1.UpdatePostResponse{
 		Post: &v1.Post{
-			Id:      request.GetId(),
+			Id:      request.GetPostId(),
 			Version: request.GetVersion(),
 		},
 	}, nil

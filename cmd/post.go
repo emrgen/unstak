@@ -203,7 +203,7 @@ func updatePost() *cobra.Command {
 			defer client.Close()
 
 			req := &v1.UpdatePostRequest{
-				Id:      postID,
+				PostId:  postID,
 				Version: version,
 			}
 
