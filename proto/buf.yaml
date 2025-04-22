@@ -1,9 +1,10 @@
 version: v1
-name: buf.build/emrgen/tinydoc
+name: buf.build/emrgen/unstak
 deps:
   - buf.build/googleapis/googleapis
   - buf.build/grpc-ecosystem/grpc-gateway
   - buf.build/envoyproxy/protoc-gen-validate
+  - buf.build/grpc-ecosystem/protoc-gen-swagger
 lint:
   use:
     - DEFAULT

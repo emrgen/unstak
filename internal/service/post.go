@@ -145,9 +145,9 @@ func (p *PostService) GetPost(ctx context.Context, request *v1.GetPostRequest) (
 		return nil, err
 	}
 
-	var authors []*v1.User
+	var authors []*v1.Account
 	for _, user := range authorsRes.GetAccounts() {
-		authors = append(authors, &v1.User{
+		authors = append(authors, &v1.Account{
 			Id:    user.Id,
 			Name:  user.Username,
 			Email: user.Email,
@@ -269,7 +269,7 @@ func (p *PostService) ListPost(ctx context.Context, request *v1.ListPostRequest)
 		}
 		responsePosts = append(responsePosts, postProto)
 		if user, ok := users[post.CreatedByID]; ok {
-			postProto.MainAuthor = &v1.User{
+			postProto.MainAuthor = &v1.Account{
 				Id:    user.Id,
 				Name:  user.Username,
 				Email: user.Email,
@@ -292,14 +292,10 @@ func (p *PostService) UpdatePost(ctx context.Context, request *v1.UpdatePostRequ
 		logrus.Infof("updating post %d", request.GetVersion())
 
 		meta := make(map[string]string)
-		if request.Title != nil {
-			meta["title"] = request.GetTitle()
-		}
-		if request.Summary != nil {
-			meta["summary"] = request.GetSummary()
-		}
-		//meta["excerpt"] = request.GetExcerpt()
-		//meta["thumbnail"] = request.GetThumbnail()
+		meta["title"] = request.GetTitle()
+		meta["summary"] = request.GetSummary()
+		meta["excerpt"] = request.GetExcerpt()
+		meta["thumbnail"] = request.GetThumbnail()
 
 		// meta string
 		marshal, err := json.Marshal(meta)

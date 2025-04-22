@@ -1,13 +1,27 @@
 syntax = "proto3";
 
-package unpost.apis.v1;
+package unstak.apis.v1;
 
 import "google/api/annotations.proto";
 import "google/protobuf/descriptor.proto";
 import "google/protobuf/timestamp.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
 import "validate/validate.proto";
 
 option go_package = "github.com/emrgen/unpost/proto/v1";
+
+option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
+  security_definitions: {
+    security: {
+      key: "OAuth2PasswordBearer",
+      value: {
+        type: TYPE_OAUTH2
+        flow: FLOW_PASSWORD
+        token_url: "/v1/auth/token",
+      }
+    }
+  }
+};
 
 enum UserRole {
   Contributor = 0; // Contributor can create but can't publish
@@ -17,7 +31,7 @@ enum UserRole {
   Owner = 4;
 }
 
-message User {
+message Account {
   string id = 1 [(validate.rules).string.uuid = true];
   string email = 2;
   string name = 3;
@@ -34,7 +48,7 @@ message CreateOwnerRequest {
 }
 
 message CreateOwnerResponse {
-  User user = 1;
+  Account user = 1;
 }
 
 message CheckOwnerSetupRequest {}
@@ -43,16 +57,44 @@ message CheckOwnerSetupResponse {
   bool is_setup = 1;
 }
 
-service AdminService {
+message LoginRequest {
+  string email = 2 [(validate.rules).string.email = true];
+  string password = 3 [
+    (validate.rules).string.min_len = 3,
+    (validate.rules).string.max_len = 64
+  ];
+  optional string client_id = 4 [(validate.rules).string.uuid = true];
+}
+message AuthToken {
+  string access_token = 1;
+  string refresh_token = 2;
+  google.protobuf.Timestamp expires_at = 3;
+  google.protobuf.Timestamp issued_at = 4;
+  google.protobuf.Timestamp refresh_expires_at = 5;
+}
+
+message LoginResponse {
+  AuthToken token = 1;
+  Account account = 2;
+}
+
+service AccountService {
+  rpc LoginUsingPassword(LoginRequest) returns (LoginResponse) {
+    option (google.api.http) = {
+      post: "/v1/login"
+      body: "*"
+    };
+  }
+
   rpc CreateOwner(CreateOwnerRequest) returns (CreateOwnerResponse) {
     option (google.api.http) = {
-      post: "/v1/admin/owners"
+      post: "/v1/user/owners"
       body: "*"
     };
   }
 
   rpc CheckOwnerSetup(CheckOwnerSetupRequest) returns (CheckOwnerSetupResponse) {
-    option (google.api.http) = {get: "/v1/admin/owners/setup"};
+    option (google.api.http) = {get: "/v1/user/owners/setup"};
   }
 }
 
@@ -245,8 +287,8 @@ message Post {
   map<string, uint32> reaction = 9;
   PostStatus status = 10;
   repeated Tag tags = 11;
-  User main_author = 13;
-  repeated User authors = 14;
+  Account main_author = 13;
+  repeated Account authors = 14;
   google.protobuf.Timestamp created_at = 20;
   google.protobuf.Timestamp updated_at = 21;
   int64 version = 22;
@@ -953,7 +995,7 @@ message TierMember {
   string tier_id = 2;
   string user_id = 3;
   Tier tier = 4;
-  User user = 5;
+  Account user = 5;
   google.protobuf.Timestamp created_at = 10;
   google.protobuf.Timestamp updated_at = 11;
 }

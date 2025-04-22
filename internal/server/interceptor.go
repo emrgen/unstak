@@ -3,10 +3,25 @@ package server
 import (
 	"context"
 	"errors"
+	authv1 "github.com/emrgen/authbase/apis/v1"
+	authx "github.com/emrgen/authbase/x"
+	v1 "github.com/emrgen/unpost/apis/v1"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"time"
 )
+
+func VerifyTokenInterceptor(keyProvider authx.VerifierProvider, authClient authv1.AccessKeyServiceClient) grpc.UnaryServerInterceptor {
+	interceptor := authx.VerifyTokenInterceptor(authx.NewUnverifiedKeyProvider(), authClient)
+	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp any, err error) {
+		switch info.FullMethod {
+		case v1.AccountService_LoginUsingPassword_FullMethodName:
+			return handler(ctx, req)
+		default:
+			return interceptor(ctx, req, info, handler)
+		}
+	}
+}
 
 func CheckPermissionInterceptor() grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {

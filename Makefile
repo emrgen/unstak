@@ -70,8 +70,7 @@ generate-client: proto
 		-i ./apis/v1/unpost.swagger.json \
 		-g typescript-axios \
 		-o ./clients/ts/unpost-client-gen \
-		--additional-properties=npmName=@emrgen/unpost-client-gen,npmVersion=${CLIENT_VERSION},useSingleRequestParameter=true,supportsES6=true,modelPropertyNaming=snake_case,paramNaming=snake_case,enumPropertyNaming=snake_case,removeOperationIdPrefix=true \
-		--type-mappings=string=String
+		--additional-properties=npmName=@emrgen/unpost-client-gen,npmVersion=${CLIENT_VERSION},useSingleRequestParameter=true,supportsES6=true,modelPropertyNaming=snake_case,paramNaming=snake_case,enumPropertyNaming=snake_case,removeOperationIdPrefix=true
 
 	# cd ./clients/firstime-gen-client/ts && yarn
 

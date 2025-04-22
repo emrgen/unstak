@@ -71,8 +71,8 @@ func Start(grpcPort, httpPort string) error {
 	grpcServer := grpc.NewServer(
 		grpc.UnaryInterceptor(grpcmiddleware.ChainUnaryServer(
 			grpcvalidator.UnaryServerInterceptor(),
-			// verify the token
-			authx.VerifyTokenInterceptor(authx.NewUnverifiedKeyProvider(), authClient),
+			// verify the authbase token
+			VerifyTokenInterceptor(authx.NewUnverifiedKeyProvider(), authClient),
 			UnaryGrpcRequestTimeInterceptor(),
 		)),
 	)
@@ -167,6 +167,7 @@ func Start(grpcPort, httpPort string) error {
 	}
 
 	// Register the grpc server
+	v1.RegisterAccountServiceServer(grpcServer, service.NewAccountService(authConfig, unpostStore, authClient))
 	v1.RegisterTagServiceServer(grpcServer, service.NewTagService(unpostStore))
 	v1.RegisterPostServiceServer(grpcServer, service.NewPostService(authConfig, unpostStore, docClient, authClient))
 	v1.RegisterCollectionServiceServer(grpcServer, service.NewCollectionService(unpostStore))
@@ -176,6 +177,9 @@ func Start(grpcPort, httpPort string) error {
 	v1.RegisterSpaceMemberServiceServer(grpcServer, service.NewSpaceMemberService(unpostStore, authClient))
 
 	// Register the rest gateway
+	if err = v1.RegisterAccountServiceHandlerFromEndpoint(context.TODO(), mux, endpoint, opts); err != nil {
+		return err
+	}
 	if err = v1.RegisterPostServiceHandlerFromEndpoint(context.TODO(), mux, endpoint, opts); err != nil {
 		return err
 	}
@@ -206,8 +210,8 @@ func Start(grpcPort, httpPort string) error {
 
 	c := cors.New(cors.Options{
 		AllowedOrigins:   []string{"*"}, // All origins are allowed
-		AllowedMethods:   []string{"GET", "POST", "DELETE", "PUT"},
-		AllowedHeaders:   []string{"Authorization"},
+		AllowedMethods:   []string{"GET", "POST", "DELETE", "PUT", "OPTIONS"},
+		AllowedHeaders:   []string{"*"},
 		AllowCredentials: true,
 	})
 
