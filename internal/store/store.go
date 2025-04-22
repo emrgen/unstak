@@ -162,6 +162,8 @@ type PlatformTagStore interface {
 type SpaceStore interface {
 	// CreateSpace creates a new space.
 	CreateSpace(ctx context.Context, space *model.Space) error
+	// GetSpaceByName retrieves a space by name.
+	GetSpaceByName(ctx context.Context, spaceName string) (*model.Space, error)
 	// GetSpace retrieves a space by ID.
 	GetSpace(ctx context.Context, spaceID uuid.UUID) (*model.Space, error)
 	// ListSpaces retrieves a list of spaces by user ID.

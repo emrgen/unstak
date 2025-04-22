@@ -54,11 +54,22 @@ func (p *PostService) CreatePost(ctx context.Context, request *v1.CreatePostRequ
 		return nil, err
 	}
 
-	// create a document in the document service
-	doc, err := p.docClient.CreateDocument(ctx, &docv1.CreateDocumentRequest{
+	req := &docv1.CreateDocumentRequest{
 		ProjectId: poolID.String(),
 		Content:   request.GetContent(),
-	})
+	}
+
+	meta := map[string]string{
+		"title": request.GetTitle(),
+	}
+	metaData, err := json.Marshal(meta)
+	if err != nil {
+		return nil, err
+	}
+	req.Meta = string(metaData)
+
+	// create a document in the document service
+	doc, err := p.docClient.CreateDocument(ctx, req)
 	if err != nil {
 		return nil, err
 	}
@@ -120,7 +131,7 @@ func (p *PostService) GetPost(ctx context.Context, request *v1.GetPostRequest) (
 		return nil, err
 	}
 
-	poolID, err := authx.GetAuthbaseAccountID(ctx)
+	poolID, err := authx.GetAuthbasePoolID(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -144,10 +155,24 @@ func (p *PostService) GetPost(ctx context.Context, request *v1.GetPostRequest) (
 	}
 
 	doc := res.GetDocument()
+	if doc == nil {
+		return nil, errors.New("document not found")
+	}
+
+	meta := map[string]string{}
+	err = json.Unmarshal([]byte(doc.GetMeta()), &meta)
+	if err != nil {
+		return nil, err
+	}
+	title, ok := meta["title"]
+	if !ok {
+		title = ""
+	}
 	postProto := &v1.Post{
 		Id:      post.ID,
 		Content: doc.GetContent(),
 		Tags:    make([]*v1.Tag, 0),
+		Title:   title,
 		//TODO: return main author
 		//MainAuthor:
 		Version: doc.GetVersion(),
@@ -267,10 +292,15 @@ func (p *PostService) UpdatePost(ctx context.Context, request *v1.UpdatePostRequ
 		logrus.Infof("updating post %d", request.GetVersion())
 
 		meta := make(map[string]string)
-		meta["Title"] = request.GetTitle()
-		meta["Summary"] = request.GetSummary()
-		meta["Excerpt"] = request.GetExcerpt()
-		meta["Thumbnail"] = request.GetThumbnail()
+		if request.Title != nil {
+			meta["title"] = request.GetTitle()
+		}
+		if request.Summary != nil {
+			meta["summary"] = request.GetSummary()
+		}
+		//meta["excerpt"] = request.GetExcerpt()
+		//meta["thumbnail"] = request.GetThumbnail()
+
 		// meta string
 		marshal, err := json.Marshal(meta)
 		if err != nil {

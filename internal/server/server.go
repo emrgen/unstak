@@ -130,26 +130,40 @@ func Start(grpcPort, httpPort string) error {
 		ID:                spaceID,
 		OwnerID:           claims.AccountID,
 		AuthbaseProjectID: claims.ProjectID,
-		Name:              "unpost",
+		Name:              "unstak",
 		Master:            true,
+		Private:           false,
 	}
 
-	// create master space
-	err = unpostStore.CreateSpace(context.TODO(), space)
-	if err != nil && !strings.Contains(err.Error(), "UNIQUE constraint failed: spaces.name") {
-		return err
-	}
-
-	if err == nil {
-		// create master space member
-		err = unpostStore.AddSpaceMember(context.TODO(), &model.SpaceMember{
-			SpaceID: space.ID,
-			UserID:  claims.AccountID,
-			Role:    model.SpaceRoleOwner,
-		})
-		if err != nil && !strings.Contains(err.Error(), "UNIQUE constraint failed: space_members.space_id") {
+	err = unpostStore.Transaction(context.TODO(), func(ctx context.Context, tx store.UnstakStore) error {
+		oldSpace, err := tx.GetSpaceByName(ctx, space.Name)
+		if err != nil {
 			return err
 		}
+
+		// if the space does not exist, create it along with the owner user
+		if oldSpace == nil {
+			// create master space
+			err = unpostStore.CreateSpace(context.TODO(), space)
+			if err != nil && !strings.Contains(err.Error(), "UNIQUE constraint failed: spaces.name") {
+				return err
+			}
+
+			// create master space member
+			err = unpostStore.AddSpaceMember(context.TODO(), &model.SpaceMember{
+				SpaceID: space.ID,
+				UserID:  claims.AccountID,
+				Role:    model.SpaceRoleOwner,
+			})
+			if err != nil && !strings.Contains(err.Error(), "UNIQUE constraint failed: space_members.space_id") {
+				return err
+			}
+		}
+
+		return nil
+	})
+	if err != nil {
+		return err
 	}
 
 	// Register the grpc server

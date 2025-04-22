@@ -101,6 +101,15 @@ func (g *GormStore) GetSpace(ctx context.Context, spaceID uuid.UUID) (*model.Spa
 	return &space, nil
 }
 
+func (g *GormStore) GetSpaceByName(ctx context.Context, spaceName string) (*model.Space, error) {
+	var space model.Space
+	if err := g.db.Where("name = ?", spaceName).First(&space).Error; err != nil {
+		return nil, err
+	}
+
+	return &space, nil
+}
+
 func (g *GormStore) ListSpaces(ctx context.Context, userID uuid.UUID) ([]*model.Space, error) {
 	var members []*model.SpaceMember
 	if err := g.db.Where("user_id = ?", userID.String()).Preload("Space").Find(&members).Error; err != nil {
