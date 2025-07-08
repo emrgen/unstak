@@ -52,8 +52,8 @@ type PostStore interface {
 	CreatePost(ctx context.Context, doc *model.Post) error
 	// GetPost retrieves a post by ID.
 	GetPost(ctx context.Context, id uuid.UUID) (*model.Post, error)
-	// ListPostBySpace retrieves a list of tinyposts by space ID.
-	ListPostBySpace(ctx context.Context, spaceID uuid.UUID, status *model.PostStatus) ([]*model.Post, error)
+	// ListPosts retrieves a list of tinyposts by space ID.
+	ListPosts(ctx context.Context, spaceID uuid.UUID, status *model.PostStatus) ([]*model.Post, error)
 	// ListPostByOwnerID retrieves a list of tinyposts by owner ID.
 	ListPostByOwnerID(ctx context.Context, userID uuid.UUID, status *model.PostStatus) ([]*model.Post, error)
 	// ListPostByUserID retrieves a list of tinyposts by user ID.

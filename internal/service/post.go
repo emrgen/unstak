@@ -62,6 +62,7 @@ func (p *PostService) CreatePost(ctx context.Context, req *v1.CreatePostRequest)
 	return &v1.CreatePostResponse{
 		Post: &v1.Post{
 			Id:        postID.String(),
+			Title:     post.Title,
 			CreatedAt: timestamppb.New(post.CreatedAt),
 			UpdatedAt: timestamppb.New(post.UpdatedAt),
 			Version:   post.Version,
@@ -77,6 +78,7 @@ func (p *PostService) GetPost(ctx context.Context, request *v1.GetPostRequest) (
 
 	postProto := &v1.Post{
 		Id:      post.ID,
+		Title:   post.Title,
 		Content: "",
 		Tags:    make([]*v1.Tag, 0),
 		Version: 1,
@@ -97,6 +99,7 @@ func (p *PostService) GetPost(ctx context.Context, request *v1.GetPostRequest) (
 
 // ListPost retrieves a list of posts within a space
 func (p *PostService) ListPost(ctx context.Context, request *v1.ListPostRequest) (*v1.ListPostResponse, error) {
+	//p.store.ListPosts()
 	return &v1.ListPostResponse{}, nil
 }
 
@@ -317,11 +320,4 @@ func postStatusToProto(status model.PostStatus) v1.PostStatus {
 	default:
 		return v1.PostStatus_DRAFT
 	}
-}
-
-func eraseDocument(ctx context.Context, docClient docv1.DocumentServiceClient, id string) error {
-	_, err := docClient.EraseDocument(ctx, &docv1.EraseDocumentRequest{
-		Id: id,
-	})
-	return err
 }
