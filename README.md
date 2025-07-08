@@ -15,38 +15,23 @@ The user can create token for project which can be used to access the project re
 
 ## Progress
 
-- [x] Create post
-- [x] Update post
-- [x] List posts
-- [x] Delete post
+- [] Create post
+- [] Update post
+- [] List posts
+- [] Delete post
 - [ ] Erase post
-- [x] Get post
-- [x] List post
+- [] Get post
+- [] List post
 - [ ] Search post
-- [x] Create tag
-- [x] List tag
-- [x] Delete tag
-- [x] Create collection
-- [x] List collection
-- [x] Delete collection
-- [x] Create tier
-- [x] Get tier
+- [] Create tag
+- [] List tag
+- [] Delete tag
+- [] Create tier
+- [] Get tier
 - [ ] List tier
 - [ ] Update tier
 - [ ] Delete tier
 - [ ] List subscriptions
-- [x] Create space
-- [x] List space
-- [x] Update space
-- [ ] delete space
-- [ ] Get space
-- [x] list space members
-- [x] add space member
-- [x] remove space member
-- [ ] update space member
-- [ ] create offline token with restricted permission to one space
-- [ ] list offline token
-- [ ] remove offline token
 - [ ] list post authors
 - [ ] add post author
 - [ ] remove post author

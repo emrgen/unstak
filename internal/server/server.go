@@ -5,9 +5,7 @@ import (
 	"errors"
 	"fmt"
 	gatewayfile "github.com/black-06/grpc-gateway-file"
-	"github.com/emrgen/authbase"
 	authx "github.com/emrgen/authbase/x"
-	docv1 "github.com/emrgen/document/apis/v1"
 	v1 "github.com/emrgen/unpost/apis/v1"
 	"github.com/emrgen/unpost/internal/config"
 	"github.com/emrgen/unpost/internal/service"
@@ -57,18 +55,10 @@ func Start(grpcPort, httpPort string) error {
 	}
 
 	// authClient provides the auth service
-	authClient, err := authbase.NewClient("4000")
-
-	docConn, err := grpc.NewClient(":4020", grpc.WithTransportCredentials(insecure.NewCredentials()))
-	defer docConn.Close()
-	// docClient provides the document service
-	docClient := docv1.NewDocumentServiceClient(docConn)
-
 	grpcServer := grpc.NewServer(
 		grpc.UnaryInterceptor(grpcmiddleware.ChainUnaryServer(
 			grpcvalidator.UnaryServerInterceptor(),
 			// verify the authbase token
-			VerifyTokenInterceptor(authx.NewUnverifiedKeyProvider(), authClient),
 			UnaryGrpcRequestTimeInterceptor(),
 		)),
 	)
@@ -101,11 +91,11 @@ func Start(grpcPort, httpPort string) error {
 	}
 
 	// Register the grpc server
-	v1.RegisterAccountServiceServer(grpcServer, service.NewAccountService(authConfig, unpostStore, authClient))
-	v1.RegisterTagServiceServer(grpcServer, service.NewTagService(unpostStore))
-	v1.RegisterPostServiceServer(grpcServer, service.NewPostService(authConfig, unpostStore, docClient, authClient))
-	v1.RegisterCourseServiceServer(grpcServer, service.NewCourseService(authConfig, unpostStore, docClient))
-	v1.RegisterPageServiceServer(grpcServer, service.NewPageService(authConfig, unpostStore, docClient))
+	//v1.RegisterAccountServiceServer(grpcServer, service.NewAccountService(authConfig, unpostStore))
+	//v1.RegisterTagServiceServer(grpcServer, service.NewTagService(unpostStore))
+	v1.RegisterPostServiceServer(grpcServer, service.NewPostService(authConfig, unpostStore))
+	//v1.RegisterCourseServiceServer(grpcServer, service.NewCourseService(authConfig, unpostStore))
+	//v1.RegisterPageServiceServer(grpcServer, service.NewPageService(authConfig, unpostStore))
 
 	// Register the rest gateway
 	if err = v1.RegisterAccountServiceHandlerFromEndpoint(context.TODO(), mux, endpoint, opts); err != nil {

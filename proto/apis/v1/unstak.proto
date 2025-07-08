@@ -135,7 +135,6 @@ message Post {
   map<string, uint32> reaction = 9;
   PostStatus status = 10;
   repeated Tag tags = 11;
-  Account main_author = 13;
   repeated Account authors = 14;
   google.protobuf.Timestamp created_at = 20;
   google.protobuf.Timestamp updated_at = 21;
@@ -144,7 +143,6 @@ message Post {
 
 message CreatePostRequest {
   optional string post_id = 1 [(validate.rules).string.uuid = true];
-  string space_id = 2 [(validate.rules).string.uuid = true];
   string title = 3;
   string content = 4;
 }

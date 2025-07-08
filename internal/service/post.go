@@ -3,8 +3,6 @@ package service
 import (
 	"context"
 	"encoding/json"
-	"errors"
-	"fmt"
 	"github.com/emrgen/authbase"
 	authx "github.com/emrgen/authbase/x"
 	docv1 "github.com/emrgen/document/apis/v1"
@@ -17,12 +15,10 @@ import (
 )
 
 // NewPostService creates a new post service
-func NewPostService(cfg *authx.AuthbaseConfig, store store.UnstakStore, docClient docv1.DocumentServiceClient, authClient authbase.Client) *PostService {
+func NewPostService(cfg *authx.AuthbaseConfig, store store.UnstakStore) *PostService {
 	return &PostService{
-		cfg:        cfg,
-		store:      store,
-		docClient:  docClient,
-		authClient: authClient,
+		cfg:   cfg,
+		store: store,
 	}
 }
 
@@ -37,83 +33,38 @@ type PostService struct {
 	v1.UnimplementedPostServiceServer
 }
 
-func (p *PostService) CreatePost(ctx context.Context, request *v1.CreatePostRequest) (*v1.CreatePostResponse, error) {
+func (p *PostService) CreatePost(ctx context.Context, req *v1.CreatePostRequest) (*v1.CreatePostResponse, error) {
+	var postID uuid.UUID
 	var err error
-	poolID, err := authx.GetAuthbasePoolID(ctx)
-	if err != nil {
-		return nil, err
-	}
-	accountID, err := authx.GetAuthbaseAccountID(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	docID := uuid.New().String()
-	if request.GetPostId() != "" {
-		docID = request.GetPostId()
-	}
-
-	req := &docv1.CreateDocumentRequest{
-		DocumentId: &docID,
-		ProjectId:  poolID.String(),
-		Content:    request.GetContent(),
-	}
-
-	meta := map[string]string{
-		"title":   request.GetTitle(),
-		"authors": fmt.Sprintf("%d", accountID),
-	}
-	metaData, err := json.Marshal(meta)
-	if err != nil {
-		return nil, err
-	}
-	req.Meta = string(metaData)
-
-	// create a document in the document service
-	doc, err := p.docClient.CreateDocument(ctx, req)
-	if err != nil {
-		return nil, err
-	}
-
-	logrus.Infof("created document %s", doc.GetDocument().GetId())
-
-	postID := uuid.New().String()
-	if request.PostId != nil {
-		postID = request.GetPostId()
+	if req.PostId != nil {
+		postID, err = uuid.Parse(req.GetPostId())
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		postID = uuid.New()
 	}
 
 	post := &model.Post{
-		ID:          postID,
-		SpaceID:     request.GetSpaceId(),
-		CreatedByID: accountID.String(),
+		ID:      postID.String(),
+		Title:   req.GetTitle(),
+		Content: req.GetContent(),
+		Status:  model.PostStatusDraft,
+		Tags:    nil,
+		Version: 0,
 	}
 
-	// get user default space-id if no space-id is provided
-	err = p.store.Transaction(ctx, func(ctx context.Context, tx store.UnstakStore) error {
-		err = tx.CreatePost(ctx, post)
-		if err != nil {
-			return err
-		}
-
-		return nil
-	})
-
-	// if the post creation fails, we need to erase the document created in the document service
-	// TODO: use a transaction to rollback the document creation
+	err = p.store.CreatePost(ctx, post)
 	if err != nil {
-		err2 := eraseDocument(ctx, p.docClient, doc.GetDocument().GetId())
-		if err2 != nil {
-			return nil, errors.Join(err, err2)
-		}
 		return nil, err
 	}
 
 	return &v1.CreatePostResponse{
 		Post: &v1.Post{
-			Id:        post.ID,
+			Id:        postID.String(),
 			CreatedAt: timestamppb.New(post.CreatedAt),
 			UpdatedAt: timestamppb.New(post.UpdatedAt),
-			Version:   doc.GetDocument().GetVersion(),
+			Version:   post.Version,
 		},
 	}, nil
 }

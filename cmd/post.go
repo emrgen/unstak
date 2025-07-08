@@ -28,19 +28,13 @@ func init() {
 }
 
 func postCreate() *cobra.Command {
-	var spaceID string
-	var postTitle string
+	var title string
 
 	command := &cobra.Command{
 		Use:   "create",
 		Short: "Create a post",
 		Run: func(cmd *cobra.Command, args []string) {
-			if spaceID == "" {
-				logrus.Errorf("missing required flag: --space-id")
-				return
-			}
-
-			if postTitle == "" {
+			if title == "" {
 				logrus.Errorf("missing required flag: --title")
 				return
 			}
@@ -53,8 +47,7 @@ func postCreate() *cobra.Command {
 			defer client.Close()
 
 			res, err := client.CreatePost(tokenContext(), &v1.CreatePostRequest{
-				SpaceId: spaceID,
-				Title:   postTitle,
+				Title: title,
 			})
 			if err != nil {
 				logrus.Error(err)
@@ -69,8 +62,7 @@ func postCreate() *cobra.Command {
 		},
 	}
 
-	command.Flags().StringVarP(&spaceID, "space-id", "s", "", "space id")
-	command.Flags().StringVarP(&postTitle, "title", "t", "", "title of the post")
+	command.Flags().StringVarP(&title, "title", "t", "", "title of the post")
 
 	return command
 }
