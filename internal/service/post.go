@@ -5,9 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	mapset "github.com/deckarep/golang-set/v2"
 	"github.com/emrgen/authbase"
-	authv1 "github.com/emrgen/authbase/apis/v1"
 	authx "github.com/emrgen/authbase/x"
 	docv1 "github.com/emrgen/document/apis/v1"
 	v1 "github.com/emrgen/unpost/apis/v1"
@@ -88,7 +86,6 @@ func (p *PostService) CreatePost(ctx context.Context, request *v1.CreatePostRequ
 		ID:          postID,
 		SpaceID:     request.GetSpaceId(),
 		CreatedByID: accountID.String(),
-		DocumentID:  doc.GetDocument().GetId(),
 	}
 
 	// get user default space-id if no space-id is provided
@@ -127,58 +124,11 @@ func (p *PostService) GetPost(ctx context.Context, request *v1.GetPostRequest) (
 		return nil, err
 	}
 
-	res, err := p.docClient.GetDocument(p.cfg.IntoContext(), &docv1.GetDocumentRequest{
-		DocumentId: post.DocumentID,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	poolID, err := authx.GetAuthbasePoolID(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	poolId := poolID.String()
-	authorsRes, err := p.authClient.ListAccounts(p.cfg.IntoContext(), &authv1.ListAccountsRequest{
-		PoolId:     &poolId,
-		AccountIds: []string{post.CreatedByID},
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	var authors []*v1.Account
-	for _, user := range authorsRes.GetAccounts() {
-		authors = append(authors, &v1.Account{
-			Id:    user.Id,
-			Name:  user.Username,
-			Email: user.Email,
-		})
-	}
-
-	doc := res.GetDocument()
-	if doc == nil {
-		return nil, errors.New("document not found")
-	}
-
-	meta := map[string]string{}
-	err = json.Unmarshal([]byte(doc.GetMeta()), &meta)
-	if err != nil {
-		return nil, err
-	}
-	title, ok := meta["title"]
-	if !ok {
-		title = ""
-	}
 	postProto := &v1.Post{
 		Id:      post.ID,
-		Content: doc.GetContent(),
+		Content: "",
 		Tags:    make([]*v1.Tag, 0),
-		Title:   title,
-		//TODO: return main author
-		//MainAuthor:
-		Version: doc.GetVersion(),
+		Version: 1,
 		Status:  postStatusToProto(post.Status),
 	}
 
@@ -196,107 +146,7 @@ func (p *PostService) GetPost(ctx context.Context, request *v1.GetPostRequest) (
 
 // ListPost retrieves a list of posts within a space
 func (p *PostService) ListPost(ctx context.Context, request *v1.ListPostRequest) (*v1.ListPostResponse, error) {
-	poolID, err := authx.GetAuthbasePoolID(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	userID, err := authx.GetAuthbaseAccountID(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	var status *model.PostStatus = nil
-	if request.Status != nil {
-		statusModel := postStatusFromProto(request.GetStatus())
-		status = &statusModel
-	}
-
-	var posts []*model.Post
-	if request.GetSpaceId() != "" {
-		posts, err = p.store.ListPostBySpace(ctx, uuid.MustParse(request.GetSpaceId()), status)
-	} else {
-		posts, err = p.store.ListPostByOwnerID(ctx, userID, status)
-	}
-
-	docIDs := make([]string, 0)
-	for _, post := range posts {
-		docIDs = append(docIDs, post.DocumentID)
-	}
-
-	// get the documents from the document service
-	res, err := p.docClient.ListDocuments(p.cfg.IntoContext(), &docv1.ListDocumentsRequest{
-		ProjectId:   poolID.String(),
-		DocumentIds: docIDs,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	// document map
-	documents := make(map[string]*docv1.Document)
-	for _, doc := range res.GetDocuments() {
-		documents[doc.GetId()] = doc
-	}
-
-	userIDs := mapset.NewSet[string]()
-	for _, post := range posts {
-		userIDs.Add(post.CreatedByID)
-	}
-
-	users := make(map[string]*authv1.Account)
-	poolId := poolID.String()
-	if res, err := p.authClient.ListAccounts(p.cfg.IntoContext(), &authv1.ListAccountsRequest{
-		PoolId:     &poolId,
-		AccountIds: userIDs.ToSlice(),
-	}); err != nil {
-		return nil, err
-	} else {
-		for _, user := range res.GetAccounts() {
-			users[user.Id] = user
-		}
-	}
-
-	var responsePosts []*v1.Post
-	for _, post := range posts {
-		doc, ok := documents[post.DocumentID]
-		if !ok {
-			continue
-		}
-		meta := map[string]string{}
-		err = json.Unmarshal([]byte(doc.GetMeta()), &meta)
-		if err != nil {
-			return nil, err
-		}
-		title := ""
-		if t, ok := meta["title"]; ok {
-			title = t
-		}
-
-		postProto := &v1.Post{
-			Id:     post.ID,
-			Status: postStatusToProto(post.Status),
-			Title:  title,
-			//Summary:   doc.Summary,
-			//Excerpt:   doc.Excerpt,
-			//Thumbnail: doc.Thumbnail,
-			Version:   doc.Version,
-			CreatedAt: timestamppb.New(post.CreatedAt),
-			UpdatedAt: timestamppb.New(post.UpdatedAt),
-		}
-		responsePosts = append(responsePosts, postProto)
-		if user, ok := users[post.CreatedByID]; ok {
-			postProto.MainAuthor = &v1.Account{
-				Id:    user.Id,
-				Name:  user.Username,
-				Email: user.Email,
-			}
-		}
-	}
-
-	return &v1.ListPostResponse{
-		Posts: responsePosts,
-	}, nil
+	return &v1.ListPostResponse{}, nil
 }
 
 func (p *PostService) UpdatePost(ctx context.Context, request *v1.UpdatePostRequest) (*v1.UpdatePostResponse, error) {

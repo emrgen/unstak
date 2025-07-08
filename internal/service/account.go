@@ -30,31 +30,8 @@ type AccountService struct {
 }
 
 func (a *AccountService) CreateAccount(ctx context.Context, request *v1.CreateAccountRequest) (*v1.CreateAccountResponse, error) {
-	poolID := request.GetPoolId()
-	// if poolID is empty, get the pool id from the config client
-	if poolID == "" {
-		res, err := a.authClient.GetClient(a.cfg.IntoContext(), &authv1.GetClientRequest{
-			ClientId: a.cfg.ClientID,
-		})
-		if err != nil {
-			return nil, err
-		}
-
-		poolID = res.GetClient().GetPoolId()
-	}
-	res, err := a.authClient.CreateAccount(a.cfg.IntoContext(), &authv1.CreateAccountRequest{
-		PoolId:   poolID,
-		Email:    request.GetEmail(),
-		Password: request.GetPassword(),
-	})
-	if err != nil {
-		return nil, err
-	}
-
 	return &v1.CreateAccountResponse{
-		Account: &v1.Account{
-			Id: res.Account.Id,
-		},
+		Account: &v1.Account{},
 	}, nil
 }
 

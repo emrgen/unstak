@@ -6,16 +6,13 @@ import (
 	"fmt"
 	gatewayfile "github.com/black-06/grpc-gateway-file"
 	"github.com/emrgen/authbase"
-	authv1 "github.com/emrgen/authbase/apis/v1"
 	authx "github.com/emrgen/authbase/x"
 	docv1 "github.com/emrgen/document/apis/v1"
 	v1 "github.com/emrgen/unpost/apis/v1"
 	"github.com/emrgen/unpost/internal/config"
-	"github.com/emrgen/unpost/internal/model"
 	"github.com/emrgen/unpost/internal/service"
 	"github.com/emrgen/unpost/internal/store"
 	"github.com/gobuffalo/packr"
-	"github.com/google/uuid"
 	grpcmiddleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpcvalidator "github.com/grpc-ecosystem/go-grpc-middleware/validator"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
@@ -26,12 +23,10 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/protobuf/encoding/protojson"
-	"gorm.io/gorm"
 	"net"
 	"net/http"
 	"os"
 	"os/signal"
-	"strings"
 	"sync"
 	"time"
 )
@@ -105,81 +100,18 @@ func Start(grpcPort, httpPort string) error {
 		return err
 	}
 
-	res, err := authClient.GetTokenFromAccessKey(context.TODO(), &authv1.GetTokenFromAccessKeyRequest{
-		AccessKey: authConfig.AccessKey,
-	})
-	if err != nil {
-		return err
-	}
-	claims, err := authx.GetTokenClaims(res.AccessToken)
-	if err != nil {
-		return err
-	}
-
-	// create master space and the owner user
-	// create owner user
-	spaceID := uuid.New().String()
-
-	space := &model.Space{
-		ID:                spaceID,
-		OwnerID:           claims.AccountID,
-		AuthbaseProjectID: claims.ProjectID,
-		Name:              "unstak",
-		Master:            true,
-		Private:           false,
-	}
-
-	oldSpace, err := unpostStore.GetSpaceByName(context.TODO(), space.Name)
-	logrus.Info("old space: %v", err)
-	if !errors.Is(err, gorm.ErrRecordNotFound) && err != nil {
-		return err
-	}
-
-	err = unpostStore.Transaction(context.TODO(), func(ctx context.Context, tx store.UnstakStore) error {
-		// if the space does not exist, create it along with the owner user
-		if oldSpace == nil {
-			logrus.Info("creating master space: %v", err)
-			// create master space
-			err = unpostStore.CreateSpace(context.TODO(), space)
-			if err != nil && !strings.Contains(err.Error(), "UNIQUE constraint failed: spaces.name") {
-				return err
-			}
-
-			// create master space member
-			err = unpostStore.AddSpaceMember(context.TODO(), &model.SpaceMember{
-				SpaceID: space.ID,
-				UserID:  claims.AccountID,
-				Role:    model.SpaceRoleOwner,
-			})
-			if err != nil && !strings.Contains(err.Error(), "UNIQUE constraint failed: space_members.space_id") {
-				return err
-			}
-		}
-
-		return nil
-	})
-	if err != nil {
-		return err
-	}
-
 	// Register the grpc server
 	v1.RegisterAccountServiceServer(grpcServer, service.NewAccountService(authConfig, unpostStore, authClient))
 	v1.RegisterTagServiceServer(grpcServer, service.NewTagService(unpostStore))
 	v1.RegisterPostServiceServer(grpcServer, service.NewPostService(authConfig, unpostStore, docClient, authClient))
-	v1.RegisterCollectionServiceServer(grpcServer, service.NewCollectionService(unpostStore))
 	v1.RegisterCourseServiceServer(grpcServer, service.NewCourseService(authConfig, unpostStore, docClient))
 	v1.RegisterPageServiceServer(grpcServer, service.NewPageService(authConfig, unpostStore, docClient))
-	v1.RegisterSpaceServiceServer(grpcServer, service.NewSpaceService(authConfig, unpostStore, authClient))
-	v1.RegisterSpaceMemberServiceServer(grpcServer, service.NewSpaceMemberService(unpostStore, authClient))
 
 	// Register the rest gateway
 	if err = v1.RegisterAccountServiceHandlerFromEndpoint(context.TODO(), mux, endpoint, opts); err != nil {
 		return err
 	}
 	if err = v1.RegisterPostServiceHandlerFromEndpoint(context.TODO(), mux, endpoint, opts); err != nil {
-		return err
-	}
-	if err = v1.RegisterCollectionServiceHandlerFromEndpoint(context.TODO(), mux, endpoint, opts); err != nil {
 		return err
 	}
 	if err = v1.RegisterTagServiceHandlerFromEndpoint(context.TODO(), mux, endpoint, opts); err != nil {
@@ -189,12 +121,6 @@ func Start(grpcPort, httpPort string) error {
 		return err
 	}
 	if err = v1.RegisterPageServiceHandlerFromEndpoint(context.TODO(), mux, endpoint, opts); err != nil {
-		return err
-	}
-	if err = v1.RegisterSpaceServiceHandlerFromEndpoint(context.TODO(), mux, endpoint, opts); err != nil {
-		return err
-	}
-	if err = v1.RegisterSpaceMemberServiceHandlerFromEndpoint(context.TODO(), mux, endpoint, opts); err != nil {
 		return err
 	}
 

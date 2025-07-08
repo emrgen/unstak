@@ -8,7 +8,7 @@ import (
 type Page struct {
 	gorm.Model
 	ID          string  `gorm:"primaryKey;uuid"`
-	DocumentID  string  `gorm:"not null"`
+	Content     string  `gorm:"not null"`
 	CourseID    string  `gorm:"not null"`
 	SpaceID     string  `gorm:"uuid;not null"`
 	CreatedByID string  `gorm:"not null"`

@@ -30,26 +30,13 @@ type PageService struct {
 }
 
 func (p *PageService) CreatePage(ctx context.Context, request *v1.CreatePageRequest) (*v1.CreatePageResponse, error) {
-	poolID, err := authx.GetAuthbasePoolID(ctx)
-	if err != nil {
-		return nil, err
-	}
-
 	userID, err := authx.GetAuthbaseAccountID(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	res, err := p.docClient.CreateDocument(p.cfg.IntoContext(), &docv1.CreateDocumentRequest{
-		ProjectId: poolID.String(),
-	})
 	if err != nil {
 		return nil, err
 	}
 
 	page := &model.Page{
 		ID:          uuid.New().String(),
-		DocumentID:  res.Document.Id,
 		CreatedByID: userID.String(),
 	}
 
@@ -71,14 +58,6 @@ func (p *PageService) GetPage(ctx context.Context, request *v1.GetPageRequest) (
 		return nil, err
 	}
 
-	res, err := p.docClient.GetDocument(p.cfg.IntoContext(), &docv1.GetDocumentRequest{
-		DocumentId: page.DocumentID,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	doc := res.GetDocument()
 	// TODO: parse the doc.Meta field to get the title, summary, excerpt, and thumbnail
 	pageProto := &v1.Page{
 		Id:          page.ID,
@@ -88,7 +67,6 @@ func (p *PageService) GetPage(ctx context.Context, request *v1.GetPageRequest) (
 		//Summary:     doc.Summary,
 		//Excerpt:     doc.Excerpt,
 		//Thumbnail:   doc.Thumbnail,
-		Version:   doc.Version,
 		CreatedAt: timestamppb.New(page.CreatedAt),
 		UpdatedAt: timestamppb.New(page.UpdatedAt),
 	}

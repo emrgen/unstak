@@ -11,13 +11,10 @@ type UnstakStore interface {
 	TierStore
 	PostStore
 	TierMemberStore
-	CollectionStore
 	CourseStore
 	PageStore
 	TagStore
 	PlatformTagStore
-	SpaceStore
-	SpaceMemberStore
 	Transaction(ctx context.Context, f func(ctx context.Context, store UnstakStore) error) error
 	Migrate() error
 }
@@ -73,25 +70,6 @@ type PostStore interface {
 	UpdatePostTags(ctx context.Context, postID uuid.UUID, tags []*model.Tag) error
 }
 
-type CollectionStore interface {
-	// CreateCollection creates a new collection.
-	CreateCollection(ctx context.Context, collection *model.Collection) error
-	// GetCollection retrieves a collection by ID.
-	GetCollection(ctx context.Context, id uuid.UUID) (*model.Collection, error)
-	// ListCollectionsByUserID retrieves a list of collections by user ID.
-	ListCollectionsByUserID(ctx context.Context, userID uuid.UUID) ([]*model.Collection, error)
-	// ListCollectionsByOwnerID retrieves a list of collections by owner ID.
-	ListCollectionsByOwnerID(ctx context.Context, ownerID uuid.UUID) ([]*model.Collection, error)
-	// UpdateCollection updates a collection.
-	UpdateCollection(ctx context.Context, collection *model.Collection) error
-	// DeleteCollection deletes a collection by ID.
-	DeleteCollection(ctx context.Context, id uuid.UUID) error
-	// AddCollectionTag	adds a tag to a collection.
-	AddCollectionTag(ctx context.Context, tag *model.CollectionTag) error
-	// RemoveCollectionTag removes a tag from a collection.
-	RemoveCollectionTag(ctx context.Context, tag *model.CollectionTag) error
-}
-
 type CourseStore interface {
 	// CreateCourse creates a new course.
 	CreateCourse(ctx context.Context, course *model.Course) error
@@ -144,34 +122,4 @@ type PlatformTagStore interface {
 	UpdatePlatformTag(ctx context.Context, tag *model.PlatformTag) error
 	// DeletePlatformTag deletes a platform tag by ID.
 	DeletePlatformTag(ctx context.Context, id uuid.UUID) error
-}
-
-type SpaceStore interface {
-	// CreateSpace creates a new space.
-	CreateSpace(ctx context.Context, space *model.Space) error
-	// GetMasterSpace retrieves the master space.
-	GetMasterSpace(ctx context.Context) (*model.Space, error)
-	// GetSpaceByName retrieves a space by name.
-	GetSpaceByName(ctx context.Context, spaceName string) (*model.Space, error)
-	// GetSpace retrieves a space by ID.
-	GetSpace(ctx context.Context, spaceID uuid.UUID) (*model.Space, error)
-	// ListSpaces retrieves a list of spaces by user ID.
-	ListSpaces(ctx context.Context, userID uuid.UUID) ([]*model.Space, error)
-	// UpdateSpace updates a space.
-	UpdateSpace(ctx context.Context, space *model.Space) error
-	// DeleteSpace deletes a space by ID.
-	DeleteSpace(ctx context.Context, spaceID uuid.UUID) error
-}
-
-type SpaceMemberStore interface {
-	// AddSpaceMember creates a new member.
-	AddSpaceMember(ctx context.Context, member *model.SpaceMember) error
-	// GetSpaceMember retrieves a member by ID.
-	GetSpaceMember(ctx context.Context, spaceID, memberID uuid.UUID) (*model.SpaceMember, error)
-	// ListSpaceMembers retrieves a list of members by space ID.
-	ListSpaceMembers(ctx context.Context, subID uuid.UUID) ([]*model.SpaceMember, error)
-	// UpdateSpaceMember updates a member, if exists it updates the member else creates a new one.
-	UpdateSpaceMember(ctx context.Context, member *model.SpaceMember) error
-	// RemoveSpaceMember deletes a member by ID.
-	RemoveSpaceMember(ctx context.Context, spaceID, memberID uuid.UUID) error
 }
