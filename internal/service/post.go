@@ -116,7 +116,6 @@ func (p *PostService) ListPost(ctx context.Context, request *v1.ListPostRequest)
 		postProtos = append(postProtos, postProto)
 	}
 
-	logrus.Printf("%+v", postProtos)
 	return &v1.ListPostResponse{
 		Posts: postProtos,
 	}, nil

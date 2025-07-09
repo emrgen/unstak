@@ -15,19 +15,17 @@ The user can create token for project which can be used to access the project re
 
 ## Progress
 
-- [] Create post
-- [] Update post
-- [] List posts
-- [] Delete post
+- [x] Create post
+- [x] Update post
+- [x] List posts
+- [x] Delete post
 - [ ] Erase post
-- [] Get post
-- [] List post
 - [ ] Search post
-- [] Create tag
-- [] List tag
-- [] Delete tag
-- [] Create tier
-- [] Get tier
+- [ ] Create tag
+- [ ] List tag
+- [ ] Delete tag
+- [ ] Create tier
+- [ ] Get tier
 - [ ] List tier
 - [ ] Update tier
 - [ ] Delete tier
