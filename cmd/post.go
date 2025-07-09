@@ -56,8 +56,8 @@ func postCreate() *cobra.Command {
 
 			cmd.Println("Post created")
 			table := tablewriter.NewWriter(os.Stdout)
-			table.SetHeader([]string{"ID", "Title", "Created At", "Updated At"})
-			table.Append([]string{res.Post.Id, res.Post.Title, res.Post.CreatedAt.AsTime().Format("2006-01-02 15:04:05"), res.Post.UpdatedAt.AsTime().Format("2006-01-02 15:04:05")})
+			table.SetHeader([]string{"ID", "Slug ID", "Title", "Created At", "Updated At"})
+			table.Append([]string{res.Post.Id, res.Post.SlugId, res.Post.Title, res.Post.CreatedAt.AsTime().Format("2006-01-02 15:04:05"), res.Post.UpdatedAt.AsTime().Format("2006-01-02 15:04:05")})
 			table.Render()
 		},
 	}
@@ -152,9 +152,9 @@ func postList() *cobra.Command {
 			}
 
 			table := tablewriter.NewWriter(os.Stdout)
-			table.SetHeader([]string{"ID", "Title", "Created At", "Updated At", "Status", "Version"})
+			table.SetHeader([]string{"ID", "Slug ID", "Title", "Created At", "Updated At", "Status", "Version"})
 			for _, post := range res.Posts {
-				table.Append([]string{post.Id, post.Title, post.CreatedAt.AsTime().Format("2006-01-02 15:04:05"), post.UpdatedAt.AsTime().Format("2006-01-02 15:04:05"), post.Status.String(), fmt.Sprintf("%d", post.GetVersion())})
+				table.Append([]string{post.Id, post.SlugId, post.Title, post.CreatedAt.AsTime().Format("2006-01-02 15:04:05"), post.UpdatedAt.AsTime().Format("2006-01-02 15:04:05"), post.Status.String(), fmt.Sprintf("%d", post.GetVersion())})
 			}
 			table.Render()
 		},
@@ -167,7 +167,7 @@ func postList() *cobra.Command {
 }
 
 func updatePost() *cobra.Command {
-	var postID, postTitle, postContent, postSummary, postExcerpt, thumbnail string
+	var postID, postTitle, postContent, postSummary, postExcerpt, thumbnail, slug string
 	var version int64
 
 	command := &cobra.Command{
@@ -215,6 +215,10 @@ func updatePost() *cobra.Command {
 				req.Thumbnail = &thumbnail
 			}
 
+			if slug != "" {
+				req.Slug = &slug
+			}
+
 			_, err = client.UpdatePost(tokenContext(), req)
 			if err != nil {
 				logrus.Error(err)
@@ -232,6 +236,7 @@ func updatePost() *cobra.Command {
 	command.Flags().StringVarP(&postExcerpt, "excerpt", "e", "", "excerpt of the post")
 	command.Flags().Int64VarP(&version, "version", "v", 0, "version of the post")
 	command.Flags().StringVarP(&thumbnail, "thumbnail", "i", "", "thumbnail of the post")
+	command.Flags().StringVarP(&slug, "slug", "g", "", "thumbnail of the post")
 
 	return command
 }

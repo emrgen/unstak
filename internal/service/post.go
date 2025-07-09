@@ -50,7 +50,8 @@ func (p *PostService) CreatePost(ctx context.Context, req *v1.CreatePostRequest)
 		Title:   req.GetTitle(),
 		Summary: req.GetSummary(),
 		Content: req.GetContent(),
-		Slug:    req.GetSlug() + "-" + x.RandomString(10),
+		Slug:    req.GetSlug(),
+		SlugID:  x.RandomString(12),
 		Status:  model.PostStatusDraft,
 		Tags:    nil,
 		Version: 0,
@@ -73,11 +74,20 @@ func (p *PostService) CreatePost(ctx context.Context, req *v1.CreatePostRequest)
 }
 
 func (p *PostService) GetPost(ctx context.Context, request *v1.GetPostRequest) (*v1.GetPostResponse, error) {
-	post, err := p.store.GetPost(ctx, uuid.MustParse(request.GetId()))
+	var post *model.Post
+	var err error
+
+	postID, err := uuid.Parse(request.GetId())
+	if err != nil {
+		post, err = p.store.GetPostBySlugID(ctx, request.GetId())
+	} else {
+		post, err = p.store.GetPost(ctx, postID)
+
+	}
 	if err != nil {
 		return nil, err
 	}
-
+	
 	postProto := &v1.Post{
 		Id:      post.ID,
 		Title:   post.Title,
@@ -112,6 +122,7 @@ func (p *PostService) ListPost(ctx context.Context, request *v1.ListPostRequest)
 			Id:        post.ID,
 			Title:     post.Title,
 			Content:   post.Content,
+			SlugId:    post.SlugID,
 			CreatedAt: timestamppb.New(post.CreatedAt),
 			UpdatedAt: timestamppb.New(post.UpdatedAt),
 		}
@@ -141,6 +152,10 @@ func (p *PostService) UpdatePost(ctx context.Context, req *v1.UpdatePostRequest)
 
 		if req.Content != nil {
 			post.Content = req.GetContent()
+		}
+
+		if req.Slug != nil {
+			post.Slug = req.GetSlug()
 		}
 
 		return store.UpdatePost(ctx, post)

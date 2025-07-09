@@ -140,6 +140,7 @@ message Post {
   google.protobuf.Timestamp created_at = 20;
   google.protobuf.Timestamp updated_at = 21;
   int64 version = 22;
+  string slug_id = 23;
 }
 
 message CreatePostRequest {
@@ -192,6 +193,7 @@ message UpdatePostRequest {
   optional string excerpt = 6;
   optional string status = 7;
   optional string authors = 8;
+  optional string slug = 9;
   int64 version = 10;
 }
 

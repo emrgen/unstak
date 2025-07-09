@@ -35,6 +35,15 @@ func (g *GormStore) GetPost(ctx context.Context, id uuid.UUID) (*model.Post, err
 	return &post, nil
 }
 
+func (g *GormStore) GetPostBySlugID(ctx context.Context, id string) (*model.Post, error) {
+	var post model.Post
+	if err := g.db.Where("slug_id = ?", id).Preload("Tags").First(&post).Error; err != nil {
+		return nil, err
+	}
+
+	return &post, nil
+}
+
 func (g *GormStore) ListPosts(ctx context.Context, filer *PostFiler) ([]*model.Post, error) {
 	var posts []*model.Post
 	if err := g.db.Where("").Find(&posts).Error; err != nil {
@@ -50,7 +59,7 @@ func (g *GormStore) UpdatePostTags(ctx context.Context, postID uuid.UUID, tags [
 
 func (g *GormStore) ListPostByUserID(ctx context.Context, userID uuid.UUID) ([]*model.Post, error) {
 	var posts []*model.Post
-	
+
 	if err := g.db.Find(&posts).Error; err != nil {
 		return nil, err
 	}

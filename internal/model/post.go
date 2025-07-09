@@ -15,7 +15,8 @@ const (
 type Post struct {
 	gorm.Model
 	ID      string `gorm:"primaryKey;uuid"`
-	Slug    string `gorm:"not null;unique"`
+	Slug    string
+	SlugID  string `gorm:"not null;unique"`
 	Title   string
 	Summary string
 	Excerpt string

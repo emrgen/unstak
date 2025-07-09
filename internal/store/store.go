@@ -59,6 +59,8 @@ type PostStore interface {
 	CreatePost(ctx context.Context, doc *model.Post) error
 	// GetPost retrieves a post by ID.
 	GetPost(ctx context.Context, id uuid.UUID) (*model.Post, error)
+	// GetPostBySlugID retries the post by slug id.
+	GetPostBySlugID(ctx context.Context, id string) (*model.Post, error)
 	// ListPosts retrieves a list of tinyposts by space ID.
 	ListPosts(ctx context.Context, filer *PostFiler) ([]*model.Post, error)
 	// UpdatePost updates a post.
