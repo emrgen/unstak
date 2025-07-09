@@ -15,7 +15,10 @@ const (
 type Post struct {
 	gorm.Model
 	ID      string `gorm:"primaryKey;uuid"`
+	Slug    string `gorm:"not null;unique"`
 	Title   string
+	Summary string
+	Excerpt string
 	Content string `gorm:"uuid;not null"`
 	//CreatedByID string     `gorm:"not null"`
 	Status  PostStatus `gorm:"not null;default:draft"`

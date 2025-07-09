@@ -120,7 +120,8 @@ service AccountService {
 enum PostStatus {
   DRAFT = 0;
   PUBLISHED = 1;
-  ARCHIVED = 2;
+  UNPUBLISHED = 2;
+  ARCHIVED = 3;
 }
 
 message Post {
@@ -143,8 +144,11 @@ message Post {
 
 message CreatePostRequest {
   optional string post_id = 1 [(validate.rules).string.uuid = true];
+  string slug = 2;
   string title = 3;
   string content = 4;
+  string summary = 5;
+  string excerpt = 6;
 }
 
 message CreatePostResponse {

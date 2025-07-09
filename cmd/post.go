@@ -145,10 +145,6 @@ func postList() *cobra.Command {
 				req.Status = &status
 			}
 
-			if spaceID != "" {
-				req.SpaceId = &spaceID
-			}
-
 			res, err := client.ListPost(tokenContext(), req)
 			if err != nil {
 				logrus.Error(err)

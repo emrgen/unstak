@@ -11,5 +11,5 @@ func RandomString(n int) string {
 		return ""
 	}
 
-	return hex.EncodeToString(b)
+	return hex.EncodeToString(b)[:n]
 }

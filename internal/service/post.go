@@ -8,6 +8,7 @@ import (
 	v1 "github.com/emrgen/unpost/apis/v1"
 	"github.com/emrgen/unpost/internal/model"
 	"github.com/emrgen/unpost/internal/store"
+	"github.com/emrgen/unpost/internal/x"
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -47,7 +48,9 @@ func (p *PostService) CreatePost(ctx context.Context, req *v1.CreatePostRequest)
 	post := &model.Post{
 		ID:      postID.String(),
 		Title:   req.GetTitle(),
+		Summary: req.GetSummary(),
 		Content: req.GetContent(),
+		Slug:    req.GetSlug() + "-" + x.RandomString(10),
 		Status:  model.PostStatusDraft,
 		Tags:    nil,
 		Version: 0,
@@ -78,7 +81,7 @@ func (p *PostService) GetPost(ctx context.Context, request *v1.GetPostRequest) (
 	postProto := &v1.Post{
 		Id:      post.ID,
 		Title:   post.Title,
-		Content: "",
+		Content: post.Content,
 		Tags:    make([]*v1.Tag, 0),
 		Version: 1,
 		Status:  postStatusToProto(post.Status),
