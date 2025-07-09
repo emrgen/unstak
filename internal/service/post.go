@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"encoding/json"
 	"github.com/emrgen/authbase"
 	authx "github.com/emrgen/authbase/x"
 	docv1 "github.com/emrgen/document/apis/v1"
@@ -99,30 +98,50 @@ func (p *PostService) GetPost(ctx context.Context, request *v1.GetPostRequest) (
 
 // ListPost retrieves a list of posts within a space
 func (p *PostService) ListPost(ctx context.Context, request *v1.ListPostRequest) (*v1.ListPostResponse, error) {
-	//p.store.ListPosts()
-	return &v1.ListPostResponse{}, nil
-}
-
-func (p *PostService) UpdatePost(ctx context.Context, request *v1.UpdatePostRequest) (*v1.UpdatePostResponse, error) {
-	meta := make(map[string]string)
-	meta["title"] = request.GetTitle()
-	meta["summary"] = request.GetSummary()
-	meta["excerpt"] = request.GetExcerpt()
-	meta["thumbnail"] = request.GetThumbnail()
-	meta["authors"] = request.GetAuthors()
-
-	// meta string
-	marshal, err := json.Marshal(meta)
+	posts, err := p.store.ListPosts(ctx, &store.PostFiler{})
 	if err != nil {
 		return nil, err
 	}
-	metaStr := string(marshal)
 
-	_, err = p.docClient.UpdateDocument(p.cfg.IntoContext(), &docv1.UpdateDocumentRequest{
-		DocumentId: request.GetPostId(),
-		Content:    request.Content,
-		Meta:       &metaStr,
-		Version:    request.GetVersion(),
+	postProtos := make([]*v1.Post, 0)
+	for _, post := range posts {
+		postProto := &v1.Post{
+			Id:        post.ID,
+			Title:     post.Title,
+			Content:   post.Content,
+			CreatedAt: timestamppb.New(post.CreatedAt),
+			UpdatedAt: timestamppb.New(post.UpdatedAt),
+		}
+
+		postProtos = append(postProtos, postProto)
+	}
+
+	logrus.Printf("%+v", postProtos)
+	return &v1.ListPostResponse{
+		Posts: postProtos,
+	}, nil
+}
+
+func (p *PostService) UpdatePost(ctx context.Context, req *v1.UpdatePostRequest) (*v1.UpdatePostResponse, error) {
+	postID, err := uuid.Parse(req.GetPostId())
+	if err != nil {
+		return nil, err
+	}
+	err = p.store.Transaction(ctx, func(ctx context.Context, store store.UnstakStore) error {
+		post, err := store.GetPost(ctx, postID)
+		if err != nil {
+			return err
+		}
+
+		if req.Title != nil {
+			post.Title = req.GetTitle()
+		}
+
+		if req.Content != nil {
+			post.Content = req.GetContent()
+		}
+
+		return store.UpdatePost(ctx, post)
 	})
 	if err != nil {
 		return nil, err
@@ -130,8 +149,7 @@ func (p *PostService) UpdatePost(ctx context.Context, request *v1.UpdatePostRequ
 
 	return &v1.UpdatePostResponse{
 		Post: &v1.Post{
-			Id:      request.GetPostId(),
-			Version: request.GetVersion(),
+			Id: req.GetPostId(),
 		},
 	}, nil
 }

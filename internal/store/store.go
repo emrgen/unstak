@@ -8,8 +8,8 @@ import (
 )
 
 type UnstakStore interface {
-	TierStore
 	PostStore
+	TierStore
 	TierMemberStore
 	CourseStore
 	PageStore
@@ -47,19 +47,20 @@ type TierMemberStore interface {
 	RemoveTierMember(ctx context.Context, subMemberID uuid.UUID) error
 }
 
+type PostFiler struct {
+	TierID  *uuid.UUID
+	OwnerID *uuid.UUID
+	UserID  *uuid.UUID
+	Status  *model.PostStatus
+}
+
 type PostStore interface {
 	// CreatePost creates a new post.
 	CreatePost(ctx context.Context, doc *model.Post) error
 	// GetPost retrieves a post by ID.
 	GetPost(ctx context.Context, id uuid.UUID) (*model.Post, error)
 	// ListPosts retrieves a list of tinyposts by space ID.
-	ListPosts(ctx context.Context, spaceID uuid.UUID, status *model.PostStatus) ([]*model.Post, error)
-	// ListPostByOwnerID retrieves a list of tinyposts by owner ID.
-	ListPostByOwnerID(ctx context.Context, userID uuid.UUID, status *model.PostStatus) ([]*model.Post, error)
-	// ListPostByUserID retrieves a list of tinyposts by user ID.
-	ListPostByUserID(ctx context.Context, userID uuid.UUID) ([]*model.Post, error)
-	// ListPostsByTierID retrieves a list of tinyposts by space ID.
-	ListPostsByTierID(ctx context.Context, spaceID uuid.UUID) ([]*model.Post, error)
+	ListPosts(ctx context.Context, filer *PostFiler) ([]*model.Post, error)
 	// UpdatePost updates a post.
 	UpdatePost(ctx context.Context, doc *model.Post) error
 	// DeletePost deletes a post by ID.

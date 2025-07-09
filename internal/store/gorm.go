@@ -22,6 +22,53 @@ type GormStore struct {
 	db *gorm.DB
 }
 
+func (g *GormStore) CreatePost(ctx context.Context, post *model.Post) error {
+	return g.db.Create(post).Error
+}
+
+func (g *GormStore) GetPost(ctx context.Context, id uuid.UUID) (*model.Post, error) {
+	var post model.Post
+	if err := g.db.Where("id = ?", id.String()).Preload("Tags").First(&post).Error; err != nil {
+		return nil, err
+	}
+
+	return &post, nil
+}
+
+func (g *GormStore) ListPosts(ctx context.Context, filer *PostFiler) ([]*model.Post, error) {
+	var posts []*model.Post
+	if err := g.db.Where("").Find(&posts).Error; err != nil {
+		return nil, err
+	}
+
+	return posts, nil
+}
+
+func (g *GormStore) UpdatePostTags(ctx context.Context, postID uuid.UUID, tags []*model.Tag) error {
+	return g.db.Model(&model.Post{ID: postID.String()}).Association("Tags").Replace(tags)
+}
+
+func (g *GormStore) ListPostByUserID(ctx context.Context, userID uuid.UUID) ([]*model.Post, error) {
+	var posts []*model.Post
+	
+	if err := g.db.Find(&posts).Error; err != nil {
+		return nil, err
+	}
+
+	return posts, nil
+}
+
+func (g *GormStore) UpdatePost(ctx context.Context, post *model.Post) error {
+	return g.db.Save(post).Error
+}
+
+func (g *GormStore) DeletePost(ctx context.Context, id uuid.UUID) error {
+	post := &model.Post{
+		ID: id.String(),
+	}
+	return g.db.Delete(post).Error
+}
+
 func (g *GormStore) ListPostBySpace(ctx context.Context, spaceID uuid.UUID, status *model.PostStatus) ([]*model.Post, error) {
 	var posts []*model.Post
 	if status != nil {
@@ -137,72 +184,6 @@ func (g *GormStore) UpdatePageTags(ctx context.Context, pageID uuid.UUID, tags [
 // -----------------------
 // TierStore
 // -----------------------
-
-func (g *GormStore) CreatePost(ctx context.Context, post *model.Post) error {
-	return g.db.Create(post).Error
-}
-
-func (g *GormStore) GetPost(ctx context.Context, id uuid.UUID) (*model.Post, error) {
-	var post model.Post
-	if err := g.db.Where("id = ?", id.String()).Preload("Tags").First(&post).Error; err != nil {
-		return nil, err
-	}
-
-	return &post, nil
-}
-
-func (g *GormStore) ListPostByOwnerID(ctx context.Context, userID uuid.UUID, status *model.PostStatus) ([]*model.Post, error) {
-	var posts []*model.Post
-	if status != nil {
-		if err := g.db.Where("created_by_id = ? AND status = ?", userID.String(), status).Find(&posts).Error; err != nil {
-			return nil, err
-		}
-
-		return posts, nil
-	}
-
-	if err := g.db.Where("created_by_id = ?", userID.String()).Find(&posts).Error; err != nil {
-		return nil, err
-	}
-
-	return posts, nil
-}
-
-func (g *GormStore) UpdatePostTags(ctx context.Context, postID uuid.UUID, tags []*model.Tag) error {
-	return g.db.Model(&model.Post{ID: postID.String()}).Association("Tags").Replace(tags)
-}
-
-// ListPostByUserID retrieves a list of tinyposts by user ID.
-// returns a list of tinyposts the user has access to.
-func (g *GormStore) ListPostByUserID(ctx context.Context, userID uuid.UUID) ([]*model.Post, error) {
-	var posts []*model.Post
-	if err := g.db.Where("created_by_id = ?", userID.String()).Find(&posts).Error; err != nil {
-		return nil, err
-	}
-
-	return posts, nil
-}
-
-// ListPostsByTierID retrieves a list of tinyposts by space ID.
-func (g *GormStore) ListPostsByTierID(ctx context.Context, spaceID uuid.UUID) ([]*model.Post, error) {
-	var posts []*model.Post
-	if err := g.db.Where("space_id = ?", spaceID.String()).Find(&posts).Error; err != nil {
-		return nil, err
-	}
-
-	return posts, nil
-}
-
-func (g *GormStore) UpdatePost(ctx context.Context, post *model.Post) error {
-	return g.db.Save(post).Error
-}
-
-func (g *GormStore) DeletePost(ctx context.Context, id uuid.UUID) error {
-	post := &model.Post{
-		ID: id.String(),
-	}
-	return g.db.Delete(post).Error
-}
 
 func (g *GormStore) UpdatePostReaction(ctx context.Context, userID, postID uuid.UUID, reaction *model.Reaction) error {
 	return g.db.Create(reaction).Error
