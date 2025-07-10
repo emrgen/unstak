@@ -10,3 +10,11 @@ func UserIDFromContext(ctx context.Context) (string, bool) {
 	userID, ok := ctx.Value("userID").(string)
 	return userID, ok
 }
+
+func ContextWithToken(ctx context.Context, token string) context.Context {
+	return context.WithValue(ctx, "token", token)
+}
+
+func TokenFromContext(ctx context.Context) (string, bool) {
+	return ctx.Value("token").(string), true
+}

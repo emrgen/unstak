@@ -2,8 +2,11 @@ package service
 
 import (
 	"context"
+	"errors"
 	v1 "github.com/emrgen/unpost/apis/v1"
 	"github.com/emrgen/unpost/internal/store"
+	"github.com/emrgen/unpost/internal/x"
+	"github.com/sirupsen/logrus"
 	"github.com/supabase-community/auth-go"
 	"github.com/supabase-community/auth-go/types"
 )
@@ -43,19 +46,53 @@ func (a *AccountService) CreateAccount(ctx context.Context, req *v1.CreateAccoun
 	}, nil
 }
 
+func (a *AccountService) Logout(ctx context.Context, request *v1.LogoutRequest) (*v1.LogoutResponse, error) {
+	token, _ := x.TokenFromContext(ctx)
+	logrus.Printf("token: %s", token)
+	err := a.authClient.WithToken(token).Logout()
+	if err != nil {
+		return nil, err
+	}
+
+	return &v1.LogoutResponse{}, nil
+}
+
 func (a *AccountService) LoginUsingPassword(ctx context.Context, req *v1.LoginRequest) (*v1.LoginResponse, error) {
 	email := req.GetEmail()
 	password := req.GetPassword()
 
 	token, err := a.authClient.Token(types.TokenRequest{
-		Email:    email,
-		Password: password,
+		GrantType: "password",
+		Email:     email,
+		Password:  password,
 	})
 	if err != nil {
 		return nil, err
 	}
 
 	user := token.User
+	var userRole string
+	if role, ok := token.User.AppMetadata["role"]; ok {
+		userRole = role.(string)
+	} else {
+		return nil, errors.New("role not found in token")
+	}
+
+	var role *v1.UserRole
+	switch userRole {
+	case "viewer":
+		role = v1.UserRole_Viewer.Enum()
+	case "author":
+		role = v1.UserRole_Author.Enum()
+	case "admin":
+		role = v1.UserRole_Admin.Enum()
+	case "owner":
+		role = v1.UserRole_Owner.Enum()
+	}
+
+	if role == nil {
+		return nil, errors.New("role not found in token")
+	}
 
 	return &v1.LoginResponse{
 		Token: &v1.AuthToken{
@@ -68,6 +105,7 @@ func (a *AccountService) LoginUsingPassword(ctx context.Context, req *v1.LoginRe
 		Account: &v1.Account{
 			Id:    user.ID.String(),
 			Email: user.Email,
+			Role:  *role,
 		},
 	}, nil
 }

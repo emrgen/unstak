@@ -107,13 +107,6 @@ func Start(grpcPort, httpPort string) error {
 		}
 	}
 
-	users, err := client.AdminListUsers(types.AdminListUsersRequest{})
-	if err != nil {
-		return err
-	}
-
-	logrus.Infof("Admin users: %v", users)
-
 	unpostStore := store.NewGormStore(rdb)
 	err = unpostStore.Migrate()
 	if err != nil {

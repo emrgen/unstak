@@ -6,7 +6,7 @@ type UserRole string
 
 const (
 	UserRoleViewer UserRole = "viewer"
-	UserRoleEditor          = "editor"
+	UserRoleAuthor          = "author"
 	UserRoleAdmin           = "admin"
 	UserRoleOwner           = "owner" // first user who logs-in becomes the owner
 )

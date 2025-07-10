@@ -67,16 +67,16 @@ vet:
 generate-client: proto
 	@echo "Generating client version $(CLIENT_VERSION)"
 	@npx openapi-generator-cli generate \
-		-i ./apis/v1/unpost.swagger.json \
+		-i ./apis/v1/unstak.swagger.json \
 		-g typescript-axios \
-		-o ./clients/ts/unpost-client-gen \
-		--additional-properties=npmName=@emrgen/unpost-client-gen,npmVersion=${CLIENT_VERSION},useSingleRequestParameter=true,supportsES6=true,modelPropertyNaming=snake_case,paramNaming=snake_case,enumPropertyNaming=snake_case,removeOperationIdPrefix=true
+		-o ./clients/ts/unstak-client-gen \
+		--additional-properties=npmName=@emrgen/unstak-client-gen,npmVersion=${CLIENT_VERSION},useSingleRequestParameter=true,supportsES6=true,modelPropertyNaming=snake_case,paramNaming=snake_case,enumPropertyNaming=snake_case,removeOperationIdPrefix=true
 
 	# cd ./clients/firstime-gen-client/ts && yarn
 
 generate-docs: protoc
 	@echo "Generating openapi doc version $(SERVER_VERSION)"
-	@npx @redocly/cli build-docs ./apis/v1/unpost.swagger.json --output ./docs/v1/index.html
+	@npx @redocly/cli build-docs ./apis/v1/unstak.swagger.json --output ./docs/v1/index.html
 
 client: generate-client generate-docs
 

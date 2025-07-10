@@ -22,7 +22,7 @@ var (
 func VerifyTokenInterceptor(jwtSecret string) grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp any, err error) {
 		switch info.FullMethod {
-		case v1.AccountService_CreateAccount_FullMethodName:
+		case v1.AccountService_CreateAccount_FullMethodName, v1.AccountService_LoginUsingPassword_FullMethodName:
 			return handler(ctx, req)
 		default:
 			return tokenInterceptor(ctx, jwtSecret, req, info, handler)
@@ -33,17 +33,19 @@ func VerifyTokenInterceptor(jwtSecret string) grpc.UnaryServerInterceptor {
 func tokenInterceptor(ctx context.Context, jwtSecret string, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (resp any, err error) {
 	jwtToken, err := TokenFromHeader(ctx, "Bearer")
 	if err != nil {
-		logrus.Errorf("authbase: interceptor error getting token from header: %v", err)
+		logrus.Errorf("interceptor error getting token from header: %v", err)
 		return nil, err
 	}
 	if len(jwtToken) == 0 {
 		return nil, errors.New("token is empty")
 	}
-
+	
+	key := []byte(jwtSecret)
 	token, err := jwt.Parse(jwtToken, func(token *jwt.Token) (interface{}, error) {
-		return jwtSecret, nil
+		return key, nil
 	})
 	if err != nil {
+		logrus.Errorf("interceptor error parsing token: %v", err)
 		return nil, err
 	}
 
@@ -58,6 +60,7 @@ func tokenInterceptor(ctx context.Context, jwtSecret string, req any, info *grpc
 	}
 
 	ctx = x.ContextWithUserID(ctx, userID)
+	ctx = x.ContextWithToken(ctx, jwtToken)
 
 	return handler(ctx, req)
 }

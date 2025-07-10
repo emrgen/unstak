@@ -23,11 +23,10 @@ option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
 };
 
 enum UserRole {
-  Contributor = 0; // Contributor can create but can't publish
-  Author = 1; // Author can create and manage post, tags
-  Editor = 2; // Editor can invite authors and contributors
-  Admin = 3; // Admin can manage all data
-  Owner = 4;
+  Viewer = 0;
+  Author = 1;
+  Admin = 2;
+  Owner = 3;
 }
 
 message Account {
@@ -78,6 +77,10 @@ message LoginResponse {
   Account account = 2;
 }
 
+message LogoutRequest {}
+
+message LogoutResponse {}
+
 message CreateAccountRequest {
   string email = 2 [(validate.rules).string.email = true];
   string name = 3;
@@ -105,6 +108,11 @@ service AccountService {
       post: "/v1/accounts"
       body: "*"
     };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      security: {
+        security_requirement: {key: "OAuth2PasswordBearer"}
+      }
+    };
   }
 
   rpc LoginUsingPassword(LoginRequest) returns (LoginResponse) {
@@ -114,9 +122,27 @@ service AccountService {
     };
   }
 
+
+  rpc Logout(LogoutRequest) returns (LogoutResponse) {
+    option (google.api.http) = {
+      post: "/v1/accounts/logout"
+      body: "*"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      security: {
+        security_requirement: {key: "OAuth2PasswordBearer"}
+      }
+    };
+  }
+
   rpc ListAccounts(ListAccountsRequest) returns (ListAccountsResponse) {
     option (google.api.http) = {
       get: "/v1/accounts"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      security: {
+        security_requirement: {key: "OAuth2PasswordBearer"}
+      }
     };
   }
 }
