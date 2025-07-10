@@ -8,6 +8,7 @@ import (
 	authx "github.com/emrgen/authbase/x"
 	v1 "github.com/emrgen/unpost/apis/v1"
 	"github.com/emrgen/unpost/internal/config"
+	"github.com/emrgen/unpost/internal/model"
 	"github.com/emrgen/unpost/internal/service"
 	"github.com/emrgen/unpost/internal/store"
 	"github.com/gobuffalo/packr"
@@ -17,6 +18,8 @@ import (
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/rs/cors"
 	"github.com/sirupsen/logrus"
+	"github.com/supabase-community/auth-go"
+	"github.com/supabase-community/auth-go/types"
 	"golang.org/x/sys/unix"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -36,8 +39,8 @@ func Start(grpcPort, httpPort string) error {
 	grpcPort = ":" + grpcPort
 	httpPort = ":" + httpPort
 
-	cnf := config.LoadConfig()
-	rdb := config.GetDb(cnf)
+	cfg := config.LoadConfig()
+	rdb := config.GetDb(cfg)
 
 	gl, err := net.Listen("tcp", grpcPort)
 	if err != nil {
@@ -58,7 +61,7 @@ func Start(grpcPort, httpPort string) error {
 	grpcServer := grpc.NewServer(
 		grpc.UnaryInterceptor(grpcmiddleware.ChainUnaryServer(
 			grpcvalidator.UnaryServerInterceptor(),
-			// verify the authbase token
+			VerifyTokenInterceptor(cfg.SupabaseConfig.JwtSecret),
 			UnaryGrpcRequestTimeInterceptor(),
 		)),
 	)
@@ -84,6 +87,33 @@ func Start(grpcPort, httpPort string) error {
 	}
 	endpoint := "localhost" + grpcPort
 
+	authClient := auth.New(cfg.SupabaseConfig.ProjectRef, cfg.SupabaseConfig.ApiKey)
+
+	// update the admin role on app start up if not set
+	client := authClient.WithToken(cfg.SupabaseConfig.ApiKey)
+	user, err := client.AdminGetUser(types.AdminGetUserRequest{UserID: cfg.AdminUserID})
+	if err != nil {
+		logrus.Error(err)
+	}
+	if _, ok := user.AppMetadata["role"]; !ok {
+		_, err := client.AdminUpdateUser(types.AdminUpdateUserRequest{
+			UserID: cfg.AdminUserID,
+			AppMetadata: map[string]interface{}{
+				"role": model.UserRoleOwner,
+			},
+		})
+		if err != nil {
+			return err
+		}
+	}
+
+	users, err := client.AdminListUsers(types.AdminListUsersRequest{})
+	if err != nil {
+		return err
+	}
+
+	logrus.Infof("Admin users: %v", users)
+
 	unpostStore := store.NewGormStore(rdb)
 	err = unpostStore.Migrate()
 	if err != nil {
@@ -91,9 +121,9 @@ func Start(grpcPort, httpPort string) error {
 	}
 
 	// Register the grpc server
-	//v1.RegisterAccountServiceServer(grpcServer, service.NewAccountService(authConfig, unpostStore))
-	//v1.RegisterTagServiceServer(grpcServer, service.NewTagService(unpostStore))
+	v1.RegisterAccountServiceServer(grpcServer, service.NewAccountService(unpostStore, authClient))
 	v1.RegisterPostServiceServer(grpcServer, service.NewPostService(authConfig, unpostStore))
+	//v1.RegisterTagServiceServer(grpcServer, service.NewTagService(unpostStore))
 	//v1.RegisterCourseServiceServer(grpcServer, service.NewCourseService(authConfig, unpostStore))
 	//v1.RegisterPageServiceServer(grpcServer, service.NewPageService(authConfig, unpostStore))
 

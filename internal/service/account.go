@@ -2,17 +2,15 @@ package service
 
 import (
 	"context"
-	"github.com/emrgen/authbase"
-	authv1 "github.com/emrgen/authbase/apis/v1"
-	authx "github.com/emrgen/authbase/x"
 	v1 "github.com/emrgen/unpost/apis/v1"
 	"github.com/emrgen/unpost/internal/store"
+	"github.com/supabase-community/auth-go"
+	"github.com/supabase-community/auth-go/types"
 )
 
 // NewAccountService creates a new auth service
-func NewAccountService(cfg *authx.AuthbaseConfig, store store.UnstakStore, authClient authbase.Client) *AccountService {
+func NewAccountService(store store.UnstakStore, authClient auth.Client) *AccountService {
 	return &AccountService{
-		cfg:        cfg,
 		store:      store,
 		authClient: authClient,
 	}
@@ -23,63 +21,53 @@ var (
 )
 
 type AccountService struct {
-	cfg        *authx.AuthbaseConfig
 	store      store.UnstakStore
-	authClient authbase.Client
+	authClient auth.Client
 	v1.UnimplementedAccountServiceServer
 }
 
-func (a *AccountService) CreateAccount(ctx context.Context, request *v1.CreateAccountRequest) (*v1.CreateAccountResponse, error) {
-	return &v1.CreateAccountResponse{
-		Account: &v1.Account{},
-	}, nil
-}
-
-func (a *AccountService) LoginUsingPassword(ctx context.Context, request *v1.LoginRequest) (*v1.LoginResponse, error) {
-	email := request.GetEmail()
-	password := request.GetPassword()
-
-	clientID := request.GetClientId()
-	if clientID == "" {
-		clientID = a.cfg.ClientID
-	}
-
-	res, err := a.authClient.LoginUsingPassword(ctx, &authv1.LoginUsingPasswordRequest{
-		Email:    email,
-		Password: password,
-		ClientId: clientID,
+func (a *AccountService) CreateAccount(ctx context.Context, req *v1.CreateAccountRequest) (*v1.CreateAccountResponse, error) {
+	signup, err := a.authClient.Signup(types.SignupRequest{
+		Email:         req.Email,
+		Password:      req.Password,
+		SecurityEmbed: types.SecurityEmbed{},
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	token := res.GetToken()
-	account := res.GetAccount()
-
-	return &v1.LoginResponse{
-		Token: &v1.AuthToken{
-			AccessToken:      token.AccessToken,
-			RefreshToken:     token.RefreshToken,
-			ExpiresAt:        token.ExpiresAt,
-			IssuedAt:         token.IssuedAt,
-			RefreshExpiresAt: token.RefreshExpiresAt,
-		},
+	return &v1.CreateAccountResponse{
 		Account: &v1.Account{
-			Id:    account.Id,
-			Email: account.Email,
-			//FirstName: account.FirstName,
-			//LastName:  account.LastName,
-			//Username: account.Username,
+			Id: signup.ID.String(),
 		},
 	}, nil
 }
 
-func (a *AccountService) CreateOwner(ctx context.Context, request *v1.CreateOwnerRequest) (*v1.CreateOwnerResponse, error) {
-	//TODO implement me
-	panic("implement me")
-}
+func (a *AccountService) LoginUsingPassword(ctx context.Context, req *v1.LoginRequest) (*v1.LoginResponse, error) {
+	email := req.GetEmail()
+	password := req.GetPassword()
 
-func (a *AccountService) CheckOwnerSetup(ctx context.Context, request *v1.CheckOwnerSetupRequest) (*v1.CheckOwnerSetupResponse, error) {
-	//TODO implement me
-	panic("implement me")
+	token, err := a.authClient.Token(types.TokenRequest{
+		Email:    email,
+		Password: password,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	user := token.User
+
+	return &v1.LoginResponse{
+		Token: &v1.AuthToken{
+			AccessToken:  token.AccessToken,
+			RefreshToken: token.RefreshToken,
+			TokenType:    token.TokenType,
+			ExpiresIn:    int32(token.ExpiresIn),
+			ExpiresAt:    int32(token.ExpiresAt),
+		},
+		Account: &v1.Account{
+			Id:    user.ID.String(),
+			Email: user.Email,
+		},
+	}, nil
 }

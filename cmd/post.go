@@ -178,10 +178,10 @@ func updatePost() *cobra.Command {
 				logrus.Errorf("missing required flag: --post-id")
 				return
 			}
-			if version == 0 {
-				logrus.Errorf("missing required flag: --version")
-				return
-			}
+			//if version == 0 {
+			//	logrus.Errorf("missing required flag: --version")
+			//	return
+			//}
 
 			client, err := unpost.NewClient("8030")
 			if err != nil {

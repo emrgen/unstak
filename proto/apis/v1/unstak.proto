@@ -64,12 +64,13 @@ message LoginRequest {
   ];
   optional string client_id = 4 [(validate.rules).string.uuid = true];
 }
+
 message AuthToken {
   string access_token = 1;
   string refresh_token = 2;
-  google.protobuf.Timestamp expires_at = 3;
-  google.protobuf.Timestamp issued_at = 4;
-  google.protobuf.Timestamp refresh_expires_at = 5;
+  string token_type = 3;
+  int32 expires_in = 4;
+  int32 expires_at = 5;
 }
 
 message LoginResponse {
@@ -90,6 +91,14 @@ message CreateAccountResponse {
   Account account = 1;
 }
 
+message ListAccountsRequest {
+
+}
+
+message ListAccountsResponse {
+
+}
+
 service AccountService {
   rpc CreateAccount(CreateAccountRequest) returns (CreateAccountResponse) {
     option (google.api.http) = {
@@ -100,20 +109,15 @@ service AccountService {
 
   rpc LoginUsingPassword(LoginRequest) returns (LoginResponse) {
     option (google.api.http) = {
-      post: "/v1/login"
+      post: "/v1/accounts/login"
       body: "*"
     };
   }
 
-  rpc CreateOwner(CreateOwnerRequest) returns (CreateOwnerResponse) {
+  rpc ListAccounts(ListAccountsRequest) returns (ListAccountsResponse) {
     option (google.api.http) = {
-      post: "/v1/user/owners"
-      body: "*"
+      get: "/v1/accounts"
     };
-  }
-
-  rpc CheckOwnerSetup(CheckOwnerSetupRequest) returns (CheckOwnerSetupResponse) {
-    option (google.api.http) = {get: "/v1/user/owners/setup"};
   }
 }
 

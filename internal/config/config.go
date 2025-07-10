@@ -1,6 +1,7 @@
 package config
 
 import (
+	"github.com/google/uuid"
 	"os"
 )
 
@@ -30,10 +31,18 @@ type DbConfig struct {
 	ConnectionString string `json:"connection_string"`
 }
 
+type SupabaseConfig struct {
+	ProjectRef string `json:"project_ref"`
+	ApiKey     string `json:"api_key"`
+	JwtSecret  string `json:"jwt"`
+}
+
 type Config struct {
 	Environment       string `json:"environment"`
 	DbConfig          DbConfig
 	ObjectStoreConfig ObjectStoreConfig
+	SupabaseConfig    SupabaseConfig
+	AdminUserID       uuid.UUID
 }
 
 var AppConfig *Config
@@ -76,12 +85,39 @@ func LoadConfig() *Config {
 		panic("DB_CONNECTION_STRING is not set")
 	}
 
+	// load object supabase config
+	SupabaseProjectRef := os.Getenv("SUPABASE_PROJECT_REF")
+	if SupabaseProjectRef == "" {
+		panic("SUPABASE_PROJECT_REF is not set")
+	}
+
+	SupabaseApiKey := os.Getenv("SUPABASE_API_KEY")
+	if SupabaseApiKey == "" {
+		panic("SUPABASE_API_KEY is not set")
+	}
+
+	SupabaseJwtSecret := os.Getenv("SUPABASE_JWT_SECRET")
+	if SupabaseJwtSecret == "" {
+		panic("SUPABASE_JWT_SECRET is not set")
+	}
+
+	AdminUserID, err := uuid.Parse(os.Getenv("ADMIN_USER_ID"))
+	if err != nil {
+		panic(err)
+	}
+
 	AppConfig = &Config{
 		Environment: Env,
 		DbConfig: DbConfig{
 			Type:             DbType,
 			ConnectionString: DbConnString,
 		},
+		SupabaseConfig: SupabaseConfig{
+			ProjectRef: SupabaseProjectRef,
+			ApiKey:     SupabaseApiKey,
+			JwtSecret:  SupabaseJwtSecret,
+		},
+		AdminUserID: AdminUserID,
 	}
 
 	return AppConfig
